@@ -2,7 +2,7 @@
  * Shared by the dashboard (browser) and scripts/build-data.js (Node), so both use exactly the same rules.
  *   PKDW  = Station PKDW + Training PKDW
  *   PKWT  = Station PKWT + Training PKWT + Back Up MOD
- *   filled = at least one MH cell (Station/Training PKWT/PKDW, Back Up MOD) is non-empty, "0" included
+ *   filled = the Station PKWT cell is non-empty ("0" included) — the site has submitted its man hour for that date
  */
 (function(root){
   const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,mei:4,jun:5,jul:6,aug:7,agu:7,sep:8,oct:9,okt:9,nov:10,dec:11,des:11};
@@ -59,7 +59,8 @@
         for(const f of FIELDS){
           const k = d.cols[f]; const raw = k==null ? "" : String(row[k]==null?"":row[k]).trim();
           o[f] = num(raw);
-          if(f!=="admits" && raw!==""){ filled = true; if(o[f]==null) o[f] = 0; }   // non-numeric text still counts as filled
+          if(f!=="admits" && raw!=="" && o[f]==null) o[f] = 0;   // non-numeric text keeps "non-empty" status
+          if(f==="spkwt" && raw!=="") filled = true;
         }
         return finishDay(o, filled);
       });
@@ -76,7 +77,7 @@
   function pack(m, title){
     return {title, dates: m.dates.map(d => d.label),
       rows: m.rows.map(r => [r.cinema, r.format, r.days.map(x => {
-        if(!x.filled && x.admits==null) return 0;
+        if(FIELDS.every(f => x[f]==null)) return 0;
         const a = FIELDS.map(f => x[f]); while(a.length && a[a.length-1]==null) a.pop(); return a;
       })])};
   }
@@ -86,7 +87,7 @@
       const m = /^(\d+)\s*-\s*(.+)$/.exec(cinema) || [null, "", cinema];
       return {cinema, code:m[1], name:m[2].trim(), format, days: ds.map(a => {
         const o = {}; FIELDS.forEach((f,i) => o[f] = Array.isArray(a) && a[i]!=null ? a[i] : null);
-        return finishDay(o, MH.some(f => o[f]!=null));
+        return finishDay(o, o.spkwt!=null);
       })};
     });
     return {dates, rows, title:p.title};

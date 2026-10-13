@@ -35,7 +35,7 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 | PKDW (MH DW) | Station PKDW + Training PKDW |
 | MH PKWT | Station PKWT + Training PKWT + Back Up MOD |
 | Total MH | PKDW + PKWT |
-| Sudah isi | minimal satu kolom MH terisi pada tanggal itu (angka 0 juga dihitung) |
+| Sudah isi | kolom **Station PKWT** pada tanggal itu terisi (angka 0 juga dihitung) |
 | Site | satu kode cinema; baris VIP/Junior digabung ke site-nya |
 
 Isian di tanggal yang belum lewat (biasanya salah kolom) tidak ikut dijumlah, tetapi ditampilkan sebagai peringatan. Total per bulan sudah dicocokkan dengan kolom MTD "PKDW" di setiap tab, dari Januari 2025 sampai Oktober 2026.

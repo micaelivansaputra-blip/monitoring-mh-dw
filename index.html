@@ -311,6 +311,12 @@ body{margin:0}
 .meter i{display:block;height:100%;border-radius:3px}
 .usage{display:inline-flex;align-items:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 .chart .mk-b{fill:var(--label-3)}
+.chart .flex{stroke:var(--label);stroke-width:2.5;stroke-linecap:round}
+.kpis.k5{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))}
+.kpis.k5 .kpi.hero{grid-column:span 2}
+@media (min-width:1180px){.kpis.k5{grid-template-columns:1.5fr repeat(4,minmax(0,1fr))}.kpis.k5 .kpi.hero{grid-column:auto}.kpis.k5 .kpi.hero .v{font-size:34px}}
+.kpis.k5 .kpi.hero .v{font-size:38px}
+@media (max-width:640px){.kpis.k5 .kpi.hero{grid-column:auto}}
 .mail-paper{background:#ffffff;color:#111111;border-radius:var(--r-card);box-shadow:var(--shadow);padding:var(--s5);overflow-x:auto}
 .mail-paper table{width:auto}
 .mail-paper th,.mail-paper td{white-space:nowrap;position:static}
@@ -809,10 +815,11 @@ function groupedChart(periods){
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Budget vs actual per minggu">`;
   for(let v=0; v<=top+1e-9; v+=step) s += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-8}" y="${y(v)+3.5}" text-anchor="end">${fmt(v)}</text>`;
   periods.forEach((p,i) => {
-    const cx = L + i*slot + slot/2, tip = `Minggu ${p.week} · ${p.label}|Budget ${fmt(p.budget)} MH${p.elapsed && p.elapsed<p.days ? " (s.d. tgl "+fmt(p.budgetToDate)+")" : ""}|Actual ${fmt(p.actual)} MH${p.elapsed===0 ? " · belum berjalan" : ""}`;
+    const cx = L + i*slot + slot/2, tip = `Minggu ${p.week} · ${p.label}|Budget ${fmt(p.budget)} MH${p.elapsed && p.elapsed<p.days ? " (s.d. tgl "+fmt(p.budgetToDate)+")" : ""}|Actual ${fmt(p.actual)} MH${p.elapsed===0 ? " · belum berjalan" : ""}${p.elapsed && p.admitsBudget ? "|DW wajar "+fmt(p.flex)+" MH · admits "+fmt(p.admitsActual)+" vs forecast "+fmt(p.admitsBudget*p.elapsed/p.days) : ""}`;
     s += `<rect x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent" data-tip="${esc(tip)}"/>`;
     s += `<path class="mk-b" d="${barPath(cx-bw-1, y(p.budget), bw, (H-B)-y(p.budget), 4)}" data-tip="${esc(tip)}"/>`;
     s += `<path class="mk ${p.actual > p.budgetToDate && p.elapsed ? "hl" : ""}" d="${barPath(cx+1, y(p.actual), bw, (H-B)-y(p.actual), 4)}" data-tip="${esc(tip)}"/>`;
+    if(p.elapsed && p.flex!=null && p.admitsBudget) s += `<line class="flex" x1="${cx-bw-5}" x2="${cx+bw+5}" y1="${y(p.flex)}" y2="${y(p.flex)}" data-tip="${esc(tip)}"/>`;
     s += `<text class="ax" x="${cx}" y="${H-12}" text-anchor="middle">${esc(p.label)}</text><text class="ax" x="${cx}" y="${H-1}" text-anchor="middle" style="opacity:.7">W${p.week}</text>`;
   });
   return s + `</svg>`;
@@ -826,30 +833,33 @@ async function viewBudget(c, alive){
   if(!r){ c.innerHTML = header("Budget vs Actual", monthName(key), tools) + `<div class="notice warn"><b>Belum ada budget untuk ${monthName(key)}</b><span>Budget yang tersedia: September–Desember 2026. Pilih bulan lain di kanan atas, atau tambahkan budget bulan ini ke budget.json.</span></div>`; wireBudget(c, null); return; }
   const T = r.tot, usageP = T.usage==null ? 0 : T.usage;
   const flt = state.budgetFilter || "active";
-  let list = r.rows.filter(x => flt==="active" ? x.status!=="none" : flt==="all" ? true : flt==="ok" ? (x.status==="ok"||x.status==="near") : flt==="nobudget" ? (x.status==="nobudget"||x.status==="early") : x.status===flt);
-  list.sort((a,b) => b.variance - a.variance || b.actual - a.actual);
+  let list = r.rows.filter(x => flt==="active" ? x.status!=="none" : flt==="all" ? true : flt==="ok" ? (x.status==="ok"||x.status==="near") : flt==="nobudget" ? (x.status==="nobudget"||x.status==="early") : flt==="overflex" ? x.overFlex > 0.5 : x.status===flt);
+  list.sort((a,b) => (r.hasAdmits ? b.overFlex - a.overFlex : 0) || b.variance - a.variance || b.actual - a.actual);
   const seg = (v,l) => `<button type="button" data-bf="${v}" aria-pressed="${flt===v}">${l}</button>`;
   const meter = u => { if(u==null) return `<span class="muted">–</span>`; const w = Math.min(100, u*100), col = u>1 ? "var(--red)" : u>=0.9 ? "var(--orange)" : "var(--green)"; return `<span class="meter"><i style="width:${w}%;background:${col}"></i></span><span>${fmt(u*100)}%</span>`; };
   c.innerHTML = header("Budget vs Actual", `${monthName(key)} · Daily Worker MH s.d. ${dateLong(r.cut)}`,
       tools + `<button class="btn" id="bvCopy" type="button">${ICON.copy}Salin ringkasan</button><button class="btn filled" data-act="budget-xlsx">${ICON.down}Unduh Excel</button>`) + `
-    <div class="kpis">
+    <div class="kpis k5">
       <div class="kpi hero"><span class="k">Actual s.d. ${+r.cut.slice(8)} ${MON_S[+key.slice(5)-1]} vs budget s.d. tanggal</span><span class="v">${fmt(T.actual)} <small>/ ${fmt(T.budgetToDate)} MH</small></span><span class="s"><span class="delta">${fmt(usageP*100)}% dari budget</span> selisih ${T.variance>0?"+":""}${fmt(T.variance)} MH</span></div>
       <div class="kpi"><span class="k">Budget ${MONTH_ID[+key.slice(5)-1]}</span><span class="v">${fmt(T.budgetMonth)}<small> MH</small></span><span class="s">Sisa <b style="color:${T.remaining<0?"var(--red-text)":"inherit"}">${fmt(T.remaining)}</b> MH untuk sisa bulan</span></div>
-      <div class="kpi"><span class="k">${ICON.warn}Perlu perhatian</span><span class="v" style="color:var(--red-text)">${r.counts.over}<small> over</small> <span style="color:var(--orange-text)">${r.counts.nobudget + r.counts.early}</span><small> tanpa budget</small></span><span class="s">${r.counts.ok + r.counts.near} site dalam budget · ${r.counts.near} mendekati</span></div>
+      ${r.hasAdmits ? `<div class="kpi"><span class="k">${ICON.person}Admits actual</span><span class="v">${fmt(T.admitsActual)}</span><span class="s"><span class="delta ${T.admitsVar>=0?"down":"up"}">${T.admitsVar>=0?"+":""}${fmt(T.admitsVar*100,1)}%</span> vs forecast ${fmt(T.admitsBudgetToDate)}</span></div>
+      <div class="kpi"><span class="k">${ICON.pie}DW wajar menurut admits</span><span class="v">${fmt(T.flex)}<small> MH</small></span><span class="s">Actual ${T.overFlex>0?"lebih":"kurang"} <b style="color:${T.overFlex>0?"var(--red-text)":"var(--green-text)"}">${fmt(Math.abs(T.overFlex))} MH</b> · ${r.overFlexSites} site di atas wajar</span></div>` : ""}
+      <div class="kpi"><span class="k">${ICON.warn}Perlu perhatian</span><span class="v" style="color:var(--red-text)">${r.counts.over}<small> over</small></span><span class="s"><b style="color:var(--orange-text)">${r.counts.nobudget + r.counts.early} site</b> pakai DW tanpa budget</span></div>
     </div>
-    <div class="card chart"><div class="card-head"><h2>Budget vs actual per minggu</h2><div class="legend"><span><i style="background:var(--label-3)"></i>Budget</span><span><i style="background:var(--blue)"></i>Actual</span><span><i style="background:var(--orange)"></i>Actual &gt; budget s.d. tgl</span></div></div>${groupedChart(r.periods)}</div>
-    <div class="row"><div class="segmented" role="group" aria-label="Filter">${seg("active","Semua aktif")}${seg("over","Over budget ("+r.counts.over+")")}${seg("nobudget","Tanpa budget ("+(r.counts.nobudget+r.counts.early)+")")}${seg("ok","Dalam budget ("+(r.counts.ok+r.counts.near)+")")}${seg("all","Semua 59")}</div></div>
+    <div class="card chart"><div class="card-head"><h2>Budget vs actual per minggu</h2><div class="legend"><span><i style="background:var(--label-3)"></i>Budget</span><span><i style="background:var(--blue)"></i>Actual</span><span><i style="background:var(--orange)"></i>Actual &gt; budget s.d. tgl</span>${r.hasAdmits?`<span><i style="background:var(--label);height:3px;border-radius:2px"></i>DW wajar (admits actual)</span>`:""}</div></div>${groupedChart(r.periods)}</div>
+    <div class="row"><div class="segmented" role="group" aria-label="Filter">${seg("active","Semua aktif")}${seg("over","Over budget ("+r.counts.over+")")}${seg("nobudget","Tanpa budget ("+(r.counts.nobudget+r.counts.early)+")")}${seg("ok","Dalam budget ("+(r.counts.ok+r.counts.near)+")")}${r.hasAdmits ? seg("overflex","Di atas DW wajar ("+r.overFlexSites+")") : ""}${seg("all","Semua 59")}</div></div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Site</th><th class="r">Budget bulan</th><th class="r">Budget s.d. tgl</th><th class="r">Actual s.d. tgl</th><th class="r">Selisih</th><th>% pemakaian</th><th class="r">Sisa budget bulan</th><th>Status</th></tr></thead>
+      <thead><tr><th>Site</th>${r.hasAdmits ? `<th class="r">Admits budget</th><th class="r">Admits actual</th><th class="r">Δ admits</th>` : ""}<th class="r">DW budget s.d. tgl</th>${r.hasAdmits ? `<th class="r">DW wajar</th>` : ""}<th class="r">DW actual</th><th class="r">Selisih vs budget</th>${r.hasAdmits ? `<th class="r">Selisih vs wajar</th>` : ""}<th>% pemakaian</th><th class="r">Sisa budget bulan</th><th>Status</th></tr></thead>
       <tbody>${list.map(x => `<tr data-bsite="${x.code}">
-        <td class="site"><b>${esc(x.cinema)}</b></td><td class="r">${fmt(x.budgetMonth)}</td><td class="r">${fmt(x.budgetToDate)}</td><td class="r"><b>${fmt(x.actual)}</b></td>
+        <td class="site"><b>${esc(x.cinema)}</b>${x.admitsMissingDays ? ` <span class="tag orange" title="Hari dengan Admits kosong di sheet MH">Admits kosong ${x.admitsMissingDays} hr</span>` : ""}</td>${r.hasAdmits ? `<td class="r">${fmt(x.admitsBudgetToDate)}</td><td class="r">${fmt(x.admitsActual)}</td><td class="r">${x.admitsVar==null?"–":`<span class="delta ${x.admitsVar>=0?"down":"up"}">${x.admitsVar>=0?"+":""}${fmt(x.admitsVar*100)}%</span>`}</td>` : ""}<td class="r">${fmt(x.budgetToDate)}</td>${r.hasAdmits ? `<td class="r">${fmt(x.flex)}</td>` : ""}<td class="r"><b>${fmt(x.actual)}</b></td>
         <td class="r">${x.variance>0.5?`<span class="delta up" style="background:var(--red-tint);color:var(--red-text)">+${fmt(x.variance)}</span>`:x.variance<-0.5?`<span class="delta down">${fmt(x.variance)}</span>`:`<span class="muted">0</span>`}</td>
+        ${r.hasAdmits ? `<td class="r">${x.overFlex>0.5?`<span class="delta up" style="background:var(--red-tint);color:var(--red-text)">+${fmt(x.overFlex)}</span>`:x.overFlex<-0.5?`<span class="delta down">${fmt(x.overFlex)}</span>`:`<span class="muted">0</span>`}</td>` : ""}
         <td><span class="usage">${meter(x.usage)}</span></td>
         <td class="r" style="${x.remaining<0?"color:var(--red-text);font-weight:600":""}">${fmt(x.remaining)}</td>
-        <td><span class="tag ${BSTAT[x.status][1]}">${BSTAT[x.status][0]}</span></td></tr>`).join("") || `<tr><td colspan="8" class="muted">Tidak ada site di filter ini.</td></tr>`}</tbody>
-      <tfoot><tr><td>Total ${list.length} site</td>${["budgetMonth","budgetToDate","actual","variance"].map(k => `<td class="r">${fmt(list.reduce((a,x)=>a+x[k],0))}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a,x)=>a+x.remaining,0))}</td><td></td></tr></tfoot>
+        <td><span class="tag ${BSTAT[x.status][1]}">${BSTAT[x.status][0]}</span></td></tr>`).join("") || `<tr><td colspan="13" class="muted">Tidak ada site di filter ini.</td></tr>`}</tbody>
+      <tfoot><tr><td>Total ${list.length} site</td>${(r.hasAdmits ? ["admitsBudgetToDate","admitsActual",null,"budgetToDate","flex","actual","variance","overFlex"] : ["budgetToDate","actual","variance"]).map(k => `<td class="r">${k ? fmt(list.reduce((a,x)=>a+(x[k]||0),0)) : ""}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a,x)=>a+x.remaining,0))}</td><td></td></tr></tfoot>
     </table></div>
-    <p class="foot">Budget s.d. tanggal = budget minggu yang sudah lewat + bagian pro-rata harian dari minggu yang sedang berjalan. Actual = Station PKDW + Training PKDW dari tanggal 1 s.d. tanggal cut-off (default kemarin). “Tanpa budget” = site memakai DW padahal budget-nya “–”. Budget dari ${esc(BUDGET.source||"budget.json")}; angka dibulatkan.</p>`;
+    <p class="foot">Budget s.d. tanggal = budget minggu yang sudah lewat + bagian pro-rata harian dari minggu yang sedang berjalan. Actual = Station PKDW + Training PKDW dari tanggal 1 s.d. tanggal cut-off (default kemarin). “Tanpa budget” = site memakai DW padahal budget-nya “–”.${r.hasAdmits ? ` <b>DW wajar</b> = rumus budget yang sama (admits ÷ (prod × 90%) − jam karyawan tetap) dijalankan ulang dengan <b>admits actual</b>, yaitu jam DW yang dibutuhkan untuk admits yang benar-benar terjadi. Admits actual diambil dari kolom Admits sheet MH DW; kalau ada hari yang kosong, DW wajar ikut lebih rendah.` : ""} Sumber budget: ${esc(BUDGET.source||"budget.json")}.</p>`;
   wireBudget(c, r);
 }
 function wireBudget(c, r){
@@ -862,6 +872,7 @@ function wireBudget(c, r){
     const T = r.tot, over = r.rows.filter(x => x.status==="over").sort((a,b)=>b.variance-a.variance), nob = r.rows.filter(x => x.status==="nobudget"||x.status==="early").sort((a,b)=>b.actual-a.actual);
     const txt = `Update Daily Worker MH — Budget vs Actual ${monthName(r.month)} (1–${+r.cut.slice(8)} ${MON_S[+r.month.slice(5)-1]})\n\n`+
       `• Actual: ${fmt(T.actual)} MH vs budget s.d. tanggal ${fmt(T.budgetToDate)} MH (${fmt(T.usage*100)}%)\n• Budget 1 bulan: ${fmt(T.budgetMonth)} MH, sisa ${fmt(T.remaining)} MH\n`+
+      (r.hasAdmits ? `• Admits actual ${fmt(T.admitsActual)} vs forecast ${fmt(T.admitsBudgetToDate)} (${T.admitsVar>=0?"+":""}${fmt(T.admitsVar*100,1)}%); DW yang wajar untuk admits tsb ${fmt(T.flex)} MH, actual lebih ${fmt(T.overFlex)} MH\n` : "")+
       `• Over budget: ${over.length} site${over.length? "\n" + over.slice(0,8).map(x => `   - ${x.cinema}: ${fmt(x.actual)} vs ${fmt(x.budgetToDate)} (+${fmt(x.variance)})`).join("\n") : ""}\n`+
       `• Pakai DW tanpa budget: ${nob.length} site${nob.length? "\n" + nob.slice(0,8).map(x => `   - ${x.cinema}: ${fmt(x.actual)} MH`).join("\n") + (nob.length>8 ? `\n   - dan ${nob.length-8} site lain` : "") : ""}\n\nDetail per site: ${location.href.split("#")[0]}`;
     navigator.clipboard.writeText(txt).then(() => hud("Ringkasan disalin"), () => hud("Browser menolak akses clipboard"));
@@ -875,10 +886,11 @@ function openBudgetSite(r, code){
     <div class="kpis">
       <div class="kpi"><span class="k">Actual s.d. tgl</span><span class="v">${fmt(x.actual)}<small> MH</small></span><span class="s">budget s.d. tgl ${fmt(x.budgetToDate)}</span></div>
       <div class="kpi"><span class="k">Budget bulan</span><span class="v">${fmt(x.budgetMonth)}<small> MH</small></span><span class="s">sisa ${fmt(x.remaining)} MH</span></div>
+      ${r.hasAdmits ? `<div class="kpi"><span class="k">DW wajar menurut admits</span><span class="v">${fmt(x.flex)}<small> MH</small></span><span class="s">admits ${fmt(x.admitsActual)} vs forecast ${fmt(x.admitsBudgetToDate)} · target prod ${x.prod||"–"}</span></div>` : ""}
       <div class="kpi"><span class="k">Status</span><span class="v" style="font-size:20px"><span class="tag ${BSTAT[x.status][1]}" style="font-size:14px">${BSTAT[x.status][0]}</span></span><span class="s">${x.usage==null?"tanpa budget s.d. tgl":fmt(x.usage*100)+"% pemakaian"}</span></div>
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Minggu</th><th>Tanggal</th><th class="r">Budget</th><th class="r">Budget s.d. tgl</th><th class="r">Actual</th><th class="r">Selisih</th></tr></thead>
-    <tbody>${x.periods.map(p => `<tr><td>W${p.week}</td><td>${p.label}${p.elapsed && p.elapsed<p.days ? ` <span class="tag">berjalan ${p.elapsed}/${p.days} hari</span>` : p.elapsed===0 ? ` <span class="muted">belum</span>` : ""}</td><td class="r">${fmt(p.budget)}</td><td class="r">${fmt(p.budgetToDate)}</td><td class="r"><b>${fmt(p.actual)}</b></td><td class="r" style="${p.actual-p.budgetToDate>0.5?"color:var(--red-text);font-weight:600":""}">${p.elapsed? (p.actual-p.budgetToDate>0?"+":"")+fmt(p.actual-p.budgetToDate) : "–"}</td></tr>`).join("")}</tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Minggu</th><th>Tanggal</th>${r.hasAdmits?`<th class="r">Admits budget</th><th class="r">Admits actual</th>`:""}<th class="r">DW budget</th><th class="r">Budget s.d. tgl</th>${r.hasAdmits?`<th class="r">DW wajar</th>`:""}<th class="r">DW actual</th><th class="r">Selisih vs budget</th></tr></thead>
+    <tbody>${x.periods.map(p => `<tr><td>W${p.week}</td><td>${p.label}${p.elapsed && p.elapsed<p.days ? ` <span class="tag">berjalan ${p.elapsed}/${p.days} hari</span>` : p.elapsed===0 ? ` <span class="muted">belum</span>` : ""}</td>${r.hasAdmits?`<td class="r">${fmt(p.admitsBudget)}</td><td class="r">${p.elapsed?fmt(p.admitsActual):"–"}</td>`:""}<td class="r">${fmt(p.budget)}</td><td class="r">${fmt(p.budgetToDate)}</td>${r.hasAdmits?`<td class="r">${p.elapsed?fmt(p.flex):"–"}</td>`:""}<td class="r"><b>${fmt(p.actual)}</b></td><td class="r" style="${p.actual-p.budgetToDate>0.5?"color:var(--red-text);font-weight:600":""}">${p.elapsed? (p.actual-p.budgetToDate>0?"+":"")+fmt(p.actual-p.budgetToDate) : "–"}</td></tr>`).join("")}</tbody></table></div>
   </div>`;
   const close = () => { scrim.remove(); document.removeEventListener("keydown", onKey); };
   const onKey = e => { if(e.key === "Escape") close(); };
@@ -890,11 +902,12 @@ async function exportBudget(){
   const key = state.month, r = await bvaFor(key, bvaCut(key)); if(!r) return;
   const rows = r.rows.slice().sort((a,b) => b.variance - a.variance);
   const wb = XLSX.utils.book_new();
-  const head = ["Kode","Site","Budget bulan (MH)","Budget s.d. tgl (MH)","Actual s.d. tgl (MH)","Selisih","% Pemakaian","Sisa budget bulan","Status"];
+  const head = ["Kode","Site","Budget bulan (MH)","Budget s.d. tgl (MH)","Actual s.d. tgl (MH)","Selisih","% Pemakaian","Sisa budget bulan","Status","Admits budget s.d. tgl","Admits actual","Δ Admits %","DW wajar (MH)","Selisih vs wajar"];
+  const adm = x => r.hasAdmits ? [+(x.admitsBudgetToDate||0).toFixed(0), x.admitsActual||0, x.admitsVar==null?"":+(x.admitsVar*100).toFixed(1), +(x.flex||0).toFixed(1), +(x.overFlex||0).toFixed(1)] : [];
   const ws1 = XLSX.utils.aoa_to_sheet([[`Daily Worker MH — Budget vs Actual ${monthName(key)}, s.d. ${r.cut}`],[`Actual = Station PKDW + Training PKDW. Budget s.d. tgl pro-rata harian untuk minggu berjalan. Diunduh ${new Date().toLocaleString("id-ID")}`],[],head,
-    ...rows.map(x => [+x.code, x.cinema, x.budgetMonth, +x.budgetToDate.toFixed(1), x.actual, +x.variance.toFixed(1), x.usage==null?"":+(x.usage*100).toFixed(1), +x.remaining.toFixed(1), BSTAT[x.status][0]]),
-    ["","TOTAL", r.tot.budgetMonth, +r.tot.budgetToDate.toFixed(1), r.tot.actual, +r.tot.variance.toFixed(1), r.tot.usage==null?"":+(r.tot.usage*100).toFixed(1), +r.tot.remaining.toFixed(1), ""]]);
-  ws1["!cols"] = [6,34,15,16,16,10,12,16,18].map(w=>({wch:w}));
+    ...rows.map(x => [+x.code, x.cinema, +x.budgetMonth.toFixed(1), +x.budgetToDate.toFixed(1), x.actual, +x.variance.toFixed(1), x.usage==null?"":+(x.usage*100).toFixed(1), +x.remaining.toFixed(1), BSTAT[x.status][0], ...adm(x)]),
+    ["","TOTAL", +r.tot.budgetMonth.toFixed(1), +r.tot.budgetToDate.toFixed(1), r.tot.actual, +r.tot.variance.toFixed(1), r.tot.usage==null?"":+(r.tot.usage*100).toFixed(1), +r.tot.remaining.toFixed(1), "", ...adm(r.tot)]]);
+  ws1["!cols"] = [6,34,15,16,16,10,12,16,18,18,14,11,14,14].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb, ws1, "Budget vs Actual");
   const ph = r.periods.flatMap(p => [`W${p.week} ${p.label} Budget`, `W${p.week} ${p.label} Actual`]);
   const ws2 = XLSX.utils.aoa_to_sheet([["Kode","Site", ...ph], ...rows.map(x => [+x.code, x.cinema, ...x.periods.flatMap(p => [p.budget, p.actual])])]);

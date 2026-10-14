@@ -16,7 +16,24 @@ scripts/build-data.js  →  data.json  →  commit ke repo ini
 GitHub Pages: index.html membaca data.json  →  cukup buka link / refresh
 ```
 
-- `index.html` adalah dashboard dengan halaman Ringkasan, Cek Pengisian H-1, PKDW 59 Site, Tren Bulanan, Peta Pengisian, dan Design System.
+- `index.html` hanya kerangka halaman. Isinya dirender oleh modul di `src/`.
+- Dashboard tersedia dalam **dua bahasa (Indonesia / English)**. Ganti lewat tombol di sidebar, di pojok kanan atas (HP), atau di menu **Lainnya**. Pilihan bahasa dan tema (Auto/Terang/Gelap) diingat browser. Email Productivity Alert selalu berbahasa Inggris.
+
+### Struktur kode
+```
+index.html                 kerangka (sidebar, navbar, tab bar)
+core.js                    aturan domain, dipakai juga oleh script Node
+src/styles/                tokens.css · base.css · layout.css · components.css
+src/app/main.js            entry: router, navigasi, event global, boot
+src/app/store.js           lapisan data (data.json, targets.json, budget.json), tanpa DOM
+src/app/state.js           state UI (halaman, bulan, filter, tema)
+src/app/i18n.js            t(key), ganti bahasa
+src/app/locales/id.js|en.js  kamus teks
+src/app/format.js          format angka & tanggal sesuai bahasa
+src/app/ui/                komponen: dom, components, charts, sheet
+src/app/features/          satu file per halaman + exports.js
+```
+Setelah mengubah teks, jalankan `node scripts/check-i18n.mjs` untuk memastikan kedua bahasa lengkap.
 - `core.js` berisi rumus parsing dan perhitungan. Dashboard dan script pembuat data memakai file yang sama, jadi angkanya pasti identik.
 - `data.json` adalah data ringkas semua tab bulan. Diperbarui otomatis setiap hari.
 - `scripts/build-data.js` mengubah hasil baca Google Sheets menjadi `data.json`.

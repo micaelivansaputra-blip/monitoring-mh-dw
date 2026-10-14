@@ -1,0 +1,298 @@
+{
+ "_note": "Target productivity (Admits / Total MH) dan region per site, dari DailyWorker_Productivity.xlsx. Ubah di sini kalau ada site baru atau perubahan target.",
+ "tolerance": 1,
+ "windowDays": 7,
+ "defaultTarget": 14,
+ "sites": {
+  "2": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "2-LIPPO MALL NUSANTARA"
+  },
+  "3": {
+   "region": "REGION 2",
+   "target": 12,
+   "name": "3-PALEMBANG ICON"
+  },
+  "4": {
+   "region": "REGION 6",
+   "target": 12,
+   "name": "4-LIPPO PLAZA MANADO"
+  },
+  "5": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "5-PONOROGO CITY CENTER"
+  },
+  "6": {
+   "region": "REGION 6",
+   "target": 12,
+   "name": "6-LM KUTA"
+  },
+  "7": {
+   "region": "REGION 1",
+   "target": 12,
+   "name": "7-SUN PLAZA"
+  },
+  "8": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "8-LIPPO PLAZA MEDAN"
+  },
+  "10": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "10-LIPPO PLAZA JOGJA"
+  },
+  "11": {
+   "region": "REGION 2",
+   "target": 12,
+   "name": "11-MAXXBOX LIPPO VILLAGE"
+  },
+  "13": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "13-LIPPO PLAZA JAMBI"
+  },
+  "14": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "14-MALL LIPPO CIKARANG"
+  },
+  "16": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "16-LIPPO PLAZA BUTON"
+  },
+  "17": {
+   "region": "REGION 4",
+   "target": 12,
+   "name": "17-LIPPO PLAZA EKALOKASARI"
+  },
+  "19": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "19-LIPPO PLAZA KUPANG"
+  },
+  "20": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "20-MALL OF SERANG"
+  },
+  "21": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "21-LIPPO PLAZA KENDARI"
+  },
+  "22": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "22-JAVA SUPERMAL"
+  },
+  "24": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "24-LIPPO PLAZA BATU"
+  },
+  "26": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "26-ISTANA PLAZA"
+  },
+  "27": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "27-MALANG TOWN SQUARE"
+  },
+  "28": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "28-CITIMALL SAMPIT"
+  },
+  "30": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "30-PLAZA RENON"
+  },
+  "31": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "31-LIVING PLAZA BALIKPAPAN"
+  },
+  "32": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "32-PLUIT VILLAGE"
+  },
+  "33": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "33-LIPPO PLAZA LUBUK LINGGAU"
+  },
+  "34": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "34-PACIFIC MALL TEGAL"
+  },
+  "35": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "35-LIPPO PLAZA KEBOEN RAYA BOGOR"
+  },
+  "37": {
+   "region": "REGION 6",
+   "target": 12,
+   "name": "37-MALL PHINISI POINT"
+  },
+  "38": {
+   "region": "REGION 4",
+   "target": 12,
+   "name": "38-DEPOK TOWN SQUARE"
+  },
+  "39": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "39-CIBUBUR JUNCTION"
+  },
+  "40": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "40-KALIBATA CITY SQUARE"
+  },
+  "41": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "41-PLAZA MEDAN FAIR"
+  },
+  "42": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "42-CITIMALL KETAPANG"
+  },
+  "43": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "43-LIPPO PLAZA JEMBER"
+  },
+  "44": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "44-TAMINI SQUARE"
+  },
+  "45": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "45-Q MALL BANJARBARU"
+  },
+  "47": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "47-CITIMALL PRABUMULIH"
+  },
+  "49": {
+   "region": "REGION 1",
+   "target": 12,
+   "name": "49-LIVING WORLD PEKANBARU"
+  },
+  "50": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "50-MAL BOTANIA 2"
+  },
+  "51": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "51-LIPPO PLAZA SUNSET"
+  },
+  "52": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "52-SIDEWALK JIMBARAN"
+  },
+  "53": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "53-CITY OF TOMORROW"
+  },
+  "54": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "54-MAL MANDAU CITY"
+  },
+  "56": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "56-GAJAH MADA PLAZA"
+  },
+  "57": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "57-DISTRIK 1 MEIKARTA"
+  },
+  "58": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "58-BINJAI SUPERMALL"
+  },
+  "60": {
+   "region": "REGION 5",
+   "target": 14,
+   "name": "60-LIPPO PLAZA SIDOARJO"
+  },
+  "61": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "61-MANGGA DUA SQUARE"
+  },
+  "62": {
+   "region": "REGION 3",
+   "target": 12,
+   "name": "62-THE PARK PEJATEN"
+  },
+  "63": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "63-BLU PLAZA BEKASI"
+  },
+  "64": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "64-SIANTAR CITY SQUARE"
+  },
+  "65": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "65-MALL PEKANBARU"
+  },
+  "66": {
+   "region": "REGION 4",
+   "target": 14,
+   "name": "66-PONDOK KELAPA TOWN SQUARE"
+  },
+  "67": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "67-KEBAYORAN PARK MALL"
+  },
+  "68": {
+   "region": "REGION 2",
+   "target": 14,
+   "name": "68-CITIPLAZA KUTABUMI"
+  },
+  "69": {
+   "region": "REGION 3",
+   "target": 12,
+   "name": "69-SENAYAN PARK"
+  },
+  "70": {
+   "region": "REGION 3",
+   "target": 14,
+   "name": "70-MALL THE GALERIA"
+  },
+  "71": {
+   "region": "REGION 1",
+   "target": 14,
+   "name": "71-K-SQUARE BATAM"
+  }
+ }
+}

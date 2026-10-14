@@ -26,6 +26,7 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 
 ## Pemakaian
 - **Setiap pagi:** buka link, lalu masuk ke **Cek Pengisian H-1**. Salin teks reminder dan kirim ke grup.
+- **Productivity Alert:** buka menu Productivity Alert, klik **Salin email**, lalu tempel di Outlook/Gmail untuk RM & cinema. Formatnya sudah tabel lengkap.
 - **Setiap tanggal 1:** buka **PKDW 59 Site**, pilih bulan sebelumnya, lalu klik **Unduh Excel**.
 - Kalau sheet baru saja diisi dan ingin langsung terlihat, jalankan tugas terjadwal **"Update data Monitoring MH DW"** secara manual di halaman Scheduled tasks Claude (klik *Run now*), tunggu beberapa menit, lalu refresh.
 
@@ -37,6 +38,10 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 | Total MH | PKDW + PKWT |
 | Sudah isi | kolom **Station PKWT** pada tanggal itu terisi (angka 0 juga dihitung) |
 | Site | satu kode cinema; baris VIP/Junior digabung ke site-nya |
+| Productivity | Admits ÷ Total MH per site per hari (Admits kosong = 0) |
+| Productivity Alert | site ter-flag kalau PKDW > 0 **dan** productivity < target − 1; warnings minggu ini = jumlah hari seperti itu dalam 7 hari terakhir |
+
+Target productivity (12 atau 14) dan region setiap site ada di `targets.json`, disalin dari laporan DailyWorker_Productivity. Untuk menambah site baru (mis. 72-Paragon Square Mall), tambahkan entri dengan kode site-nya.
 
 Isian di tanggal yang belum lewat (biasanya salah kolom) tidak ikut dijumlah, tetapi ditampilkan sebagai peringatan. Total per bulan sudah dicocokkan dengan kolom MTD "PKDW" di setiap tab, dari Januari 2025 sampai Oktober 2026.
 

@@ -307,6 +307,9 @@ dl.defs dd{margin:0;color:var(--label-2)}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 body{margin:0}
+.mail-paper{background:#ffffff;color:#111111;border-radius:var(--r-card);box-shadow:var(--shadow);padding:var(--s5);overflow-x:auto}
+.mail-paper table{width:auto}
+.mail-paper th,.mail-paper td{white-space:nowrap;position:static}
 [hidden]{display:none!important}
 img{max-width:100%}
 </style>
@@ -322,6 +325,7 @@ img{max-width:100%}
     <div class="side-label">MONITORING</div>
     <button class="nav-item" data-view="overview" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Ringkasan</button>
     <button class="nav-item" data-view="h1" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L6.5 5M3.5 12l1.2 1.2 1.8-2.2M4 18h1.5"/></svg>Cek Pengisian H-1<span class="badge" id="navBadge" hidden></span></button>
+    <button class="nav-item" data-view="alert" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.6v.01"/></svg>Productivity Alert<span class="badge" id="alertBadge" hidden></span></button>
     <div class="side-label">LAPORAN</div>
     <button class="nav-item" data-view="sites" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12"/><path d="M8 21v-6h8v6M3 21h18"/></svg>PKDW 59 Site</button>
     <button class="nav-item" data-view="trend" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Tren Bulanan</button>
@@ -355,7 +359,7 @@ img{max-width:100%}
     <button data-view="overview" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Ringkasan</button>
     <button data-view="h1" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L6.5 5M3.5 12l1.2 1.2 1.8-2.2M4 18h1.5"/></svg>H-1<span class="badge" id="tabBadge" hidden></span></button>
     <button data-view="sites" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12"/><path d="M8 21v-6h8v6M3 21h18"/></svg>59 Site</button>
-    <button data-view="trend" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Tren</button>
+    <button data-view="alert" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.6v.01"/></svg>Alert<span class="badge" id="alertTabBadge" hidden></span></button>
     <button data-view="ds" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4" fill="currentColor"/><circle cx="12" cy="7.5" r="1.4" fill="currentColor"/><circle cx="16" cy="10" r="1.4" fill="currentColor"/><path d="M12 21c-1.5-2-1-4 1.5-4H17"/></svg>Lainnya</button>
   </nav>
 </div>
@@ -399,11 +403,12 @@ const ICON = {
 
 /* ===== State ===== */
 let DATA = null;           // parsed data.json
+let TARGETS = null;        // targets.json (region + productivity target per site)
 let tabs = {};            // key -> title
 let cache = {};           // key -> {m, st}
 let lastSync = null;
-const VIEWS = {overview:"Ringkasan", h1:"Cek Pengisian H-1", sites:"PKDW 59 Site", trend:"Tren Bulanan", map:"Peta Pengisian", ds:"Design System & Definisi"};
-const state = { view:"overview", month: yestIso.slice(0,7), h1Date: yestIso, siteFilter:"all", q:"", perFormat:false, sort:{k:"pkdw",dir:-1}, trendN:6 };
+const VIEWS = {overview:"Ringkasan", h1:"Cek Pengisian H-1", alert:"Productivity Alert", sites:"PKDW 59 Site", trend:"Tren Bulanan", map:"Peta Pengisian", ds:"Design System & Definisi"};
+const state = { view:"overview", month: yestIso.slice(0,7), h1Date: yestIso, siteFilter:"all", q:"", perFormat:false, sort:{k:"pkdw",dir:-1}, trendN:6, alertDate: yestIso, alertMode:"flagged" };
 try{ const v = localStorage.getItem("mhdw.view"); if(v && VIEWS[v]) state.view = v; }catch(e){}
 
 /* ===== Data (data.json, rebuilt daily from Google Sheets) ===== */
@@ -411,6 +416,7 @@ async function loadData(){
   const res = await fetch("data.json?t=" + Date.now(), {cache:"no-store"});
   if(!res.ok) throw {code:"no_data", message:"data.json " + res.status};
   DATA = await res.json();
+  try{ const t = await fetch("targets.json?t=" + Date.now(), {cache:"no-store"}); TARGETS = t.ok ? await t.json() : null; }catch(e){ TARGETS = null; }
   tabs = {}; Object.keys(DATA.months||{}).forEach(k => tabs[k] = DATA.months[k].title);
   cache = {}; trendCache = null;
   lastSync = DATA.generatedAt ? new Date(DATA.generatedAt).getTime() : null;
@@ -487,7 +493,7 @@ function fillMonths(){
 let renderToken = 0;
 async function render(){
   const tok = ++renderToken; const c = $("content");
-  const fns = {overview:viewOverview, h1:viewH1, sites:viewSites, trend:viewTrend, map:viewMap, ds:viewDS};
+  const fns = {overview:viewOverview, h1:viewH1, alert:viewAlert, sites:viewSites, trend:viewTrend, map:viewMap, ds:viewDS};
   try{ await fns[state.view](c, () => tok === renderToken); }
   catch(err){ if(tok===renderToken) c.innerHTML = header(VIEWS[state.view], "") + errBox(err); }
 }
@@ -681,6 +687,108 @@ async function viewTrend(c, alive){
 let trendCache = null;
 function wireTrend(c){ c.querySelectorAll("[data-n]").forEach(b => b.addEventListener("click", () => { state.trendN = +b.dataset.n; render(); })); }
 
+/* ===== View: Productivity Alert ===== */
+const EN_DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const EN_MON = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const dateEN = iso => { const d = new Date(iso+"T00:00:00"); return `${EN_DAY[d.getDay()]}, ${d.getDate()} ${EN_MON[d.getMonth()]} ${d.getFullYear()}`; };
+const f1 = v => v==null ? "–" : (Math.round(v*10)/10).toFixed(1);
+const fInt = v => v==null ? "–" : String(Math.round(v));
+const dwTxt = r => `${fInt(r.pkdw)} (${fInt(r.spkdw)} + ${fInt(r.tpkdw)})`;
+async function alertsFor(iso){
+  const keys = [...new Set([0,-1,-2,-3,-4,-5,-6,-7].map(n => MHCore.isoAdd(iso, n).slice(0,7)))];
+  const ms = {}; for(const k of keys){ const g = await getMonth(k); if(g) ms[k] = g.m; }
+  return MHCore.prodAlerts(k => ms[k] || null, iso, TARGETS || {});
+}
+function mailHTML(a){
+  const th = 'style="background:#4a5785;color:#ffffff;padding:8px 10px;border:1px solid #9aa3c0;font-weight:bold;text-align:center"';
+  const td = (v, al="left", extra="") => `<td style="padding:6px 10px;border:1px solid #c9cdd8;text-align:${al};${extra}">${v}</td>`;
+  const warnC = "color:#d9622b;font-weight:bold";
+  const rows = a.flagged.map(r => `<tr>${td(esc(r.region))}${td(esc(r.cinema))}${td(r.warn+"x this week","center",warnC)}${td(f1(r.prod),"center",warnC)}${td(r.target,"center")}${td(dwTxt(r),"center")}${td(fInt(r.admits),"right")}${td(fInt(r.mh),"right")}</tr>`).join("");
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;line-height:1.5">
+<p>Dear Regional Managers and Cinema teams,</p>
+<p>The cinemas below used <b>daily-worker man-hours</b> on <b>${dateEN(a.date)}</b> while their <b>productivity fell short of target</b> (beyond the ±${a.tolerance} tolerance). Please review the daily-worker usage against the productivity outcome for these sites.</p>
+<table style="border-collapse:collapse;font-size:13px">
+<tr><th ${th}>Region</th><th ${th}>Cinema</th><th ${th}>Warnings<br>this week</th><th ${th}>Productivity</th><th ${th}>Target</th><th ${th}>Daily-worker hrs<br>(Station + Training)</th><th ${th}>Admits</th><th ${th}>Total MH</th></tr>
+${rows}
+</table>
+<p>Productivity = Admits ÷ Total MH. Warnings this week = days in the last 7 days (${dateShortEN(a.window[0])} – ${dateShortEN(a.date)}) with daily-worker usage and productivity below target − ${a.tolerance}.</p>
+<p>Thank you.</p>
+</div>`;
+}
+const dateShortEN = iso => { const d = new Date(iso+"T00:00:00"); return `${d.getDate()} ${EN_MON[d.getMonth()].slice(0,3)}`; };
+function mailText(a){
+  const lines = a.flagged.map((r,i) => `${i+1}. ${r.region} | ${r.cinema} | ${r.warn}x this week | Prod ${f1(r.prod)} vs target ${r.target} | DW ${dwTxt(r)} hrs | Admits ${fInt(r.admits)} | Total MH ${fInt(r.mh)}`);
+  return `Dear Regional Managers and Cinema teams,\n\nThe cinemas below used daily-worker man-hours on ${dateEN(a.date)} while their productivity fell short of target (beyond the ±${a.tolerance} tolerance). Please review the daily-worker usage against the productivity outcome for these sites.\n\n${lines.join("\n")}\n\nProductivity = Admits ÷ Total MH.\n\nThank you.`;
+}
+async function viewAlert(c, alive){
+  const iso = state.alertDate;
+  const seg = (v,l) => `<button type="button" data-amode="${v}" aria-pressed="${state.alertMode===v}">${l}</button>`;
+  const tools = `<input type="date" class="datefield" id="alDate" value="${iso}" max="${todayIso}" aria-label="Tanggal"><button class="btn" id="alYest" type="button">Kemarin</button>`;
+  c.innerHTML = loading("Productivity Alert", dateLong(iso));
+  const a = await alertsFor(iso); if(!alive()) return;
+  if(!a){ c.innerHTML = header("Productivity Alert", dateLong(iso), tools) + `<div class="notice warn"><b>Tanggal ini belum ada di data</b><span>Pilih tanggal lain, atau tunggu update data berikutnya.</span></div>`; wireAlert(c, null); return; }
+  const F = a.flagged, dwSum = F.reduce((s,r)=>s+r.pkdw,0), heavy = F.filter(r => r.warn>=5).length;
+  const dwUsers = a.rows.filter(r => r.pkdw>0).length;
+  const list = state.alertMode === "flagged" ? F : a.rows;
+  const notes = [];
+  if(!TARGETS) notes.push(`<div class="notice warn"><b>targets.json tidak terbaca</b><span>Semua site sementara memakai target 14.</span></div>`);
+  if(a.noTarget.length) notes.push(`<div class="notice warn"><b>${a.noTarget.length} site belum punya target</b><span>${a.noTarget.map(r=>esc(r.cinema)).join(", ")}: sementara memakai target ${TARGETS && TARGETS.defaultTarget || 14} dan tanpa region. Tambahkan di targets.json.</span></div>`);
+  if(a.missingWindow.length) notes.push(`<div class="notice warn"><b>Sebagian 7 hari terakhir tidak ada di data</b><span>${a.missingWindow.join(", ")}, jadi jumlah warning bisa lebih kecil dari seharusnya.</span></div>`);
+  const missAdm = F.filter(r => r.admitsMissing);
+  if(missAdm.length) notes.push(`<div class="notice warn"><b>Admits kosong di ${missAdm.length} site yang ter-flag</b><span>${missAdm.map(r=>esc(r.cinema)).join(", ")}: Admits dihitung 0, sama seperti laporan sebelumnya. Cek apakah memang belum diisi.</span></div>`);
+  c.innerHTML = header("Productivity Alert", `${dateLong(iso)} · site yang memakai DW tapi productivity &lt; target − ${a.tolerance}`,
+      tools + `<button class="btn" data-act="alert-xlsx">${ICON.down}Excel</button><button class="btn filled" id="copyMail" type="button">${ICON.copy}Salin email</button>`) + notes.join("") + `
+    <div class="kpis">
+      <div class="kpi"><span class="k">${ICON.warn}Site ter-flag</span><span class="v" style="color:${F.length?"var(--orange-text)":"var(--green-text)"}">${F.length}<small> / ${dwUsers} pemakai DW</small></span><span class="s">dari ${a.rows.length} site yang ada di data</span></div>
+      <div class="kpi"><span class="k">${ICON.person}Jam DW di site ter-flag</span><span class="v">${fmt(dwSum)}<small> MH</small></span><span class="s">Station ${fmt(F.reduce((s,r)=>s+r.spkdw,0))} · Training ${fmt(F.reduce((s,r)=>s+r.tpkdw,0))}</span></div>
+      <div class="kpi"><span class="k">${ICON.calendar}Warning ≥ 5× minggu ini</span><span class="v">${heavy}<small> site</small></span><span class="s">jendela ${dateShortEN(a.window[0])} – ${dateShortEN(a.date)}</span></div>
+    </div>
+    <div class="row"><div class="segmented" role="group" aria-label="Tampilan">${seg("flagged","Ter-flag ("+F.length+")")}${seg("all","Semua site ("+a.rows.length+")")}</div><span class="spacer"></span><button class="btn plain" id="copyText" type="button">Salin versi teks (WhatsApp)</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Region</th><th>Cinema</th><th class="r">Warnings minggu ini</th><th class="r">Productivity</th><th class="r">Target</th><th class="r">Jam DW (Station + Training)</th><th class="r">Admits</th><th class="r">Total MH</th><th>Status</th></tr></thead>
+      <tbody>${list.map(r => `<tr data-site="${r.code}" data-tip="${esc(r.cinema)}|${r.warn ? "Warning: " + r.warnDates.map(d => d.slice(8)+"/"+d.slice(5,7)).join(", ") : "Tidak ada warning 7 hari terakhir"}">
+        <td>${esc(r.region)}</td><td class="site"><b>${esc(r.cinema)}</b>${r.admitsMissing?` <span class="tag orange">Admits kosong</span>`:""}</td>
+        <td class="r">${r.warn ? `<span class="tag ${r.warn>=5?"red":"orange"}">${r.warn}× minggu ini</span>` : `<span class="muted">0</span>`}</td>
+        <td class="r" style="${r.prod!=null && r.prod < r.target - a.tolerance ? "color:var(--orange-text);font-weight:600" : ""}">${f1(r.prod)}</td>
+        <td class="r">${r.target}${r.hasTarget?"":"*"}</td><td class="r">${r.pkdw ? dwTxt(r) : `<span class="muted">0</span>`}</td>
+        <td class="r">${r.admits==null?"–":fmt(r.admits)}</td><td class="r">${fmt(r.mh)}</td>
+        <td>${r.flag ? `<span class="tag red">Flagged</span>` : r.pkdw>0 ? `<span class="tag green">Sesuai target</span>` : `<span class="muted">Tanpa DW</span>`}</td></tr>`).join("") || `<tr><td colspan="9" class="muted">Tidak ada site yang ter-flag di tanggal ini.</td></tr>`}</tbody>
+    </table></div>
+    <p class="section-head">Pratinjau email</p>
+    <div class="mail-paper">${F.length ? mailHTML(a) : `<p style="font-family:Arial;color:#555">Tidak ada site yang perlu diingatkan untuk ${dateEN(a.date)}.</p>`}</div>
+    <p class="foot">Aturan: Productivity = Admits ÷ Total MH (semua format digabung per site). Site ter-flag kalau di tanggal itu memakai DW <b>dan</b> productivity &lt; target − ${a.tolerance}. Warnings minggu ini = jumlah hari seperti itu dalam 7 hari terakhir. Target dan region dari targets.json. Hasil hitung 13 Okt 2026 sudah dicocokkan dengan laporan DailyWorker_Productivity: 58/58 site sama.</p>`;
+  wireAlert(c, a); wireCommon(c);
+}
+function wireAlert(c, a){
+  const d = $("alDate"); if(d) d.addEventListener("change", e => { if(e.target.value){ state.alertDate = e.target.value; render(); } });
+  const y = $("alYest"); if(y) y.addEventListener("click", () => { state.alertDate = yestIso; render(); });
+  c.querySelectorAll("[data-amode]").forEach(b => b.addEventListener("click", () => { state.alertMode = b.dataset.amode; render(); }));
+  if(!a) return;
+  const cm = $("copyMail"); if(cm) cm.addEventListener("click", async () => {
+    if(!a.flagged.length){ hud("Tidak ada site ter-flag"); return; }
+    const html = mailHTML(a), text = mailText(a);
+    try{
+      if(window.ClipboardItem){ await navigator.clipboard.write([new ClipboardItem({"text/html": new Blob([html],{type:"text/html"}), "text/plain": new Blob([text],{type:"text/plain"})})]); hud("Email disalin. Tempel di Outlook/Gmail."); }
+      else { await navigator.clipboard.writeText(text); hud("Versi teks disalin"); }
+    }catch(e){ try{ await navigator.clipboard.writeText(text); hud("Versi teks disalin"); }catch(_){ hud("Browser menolak akses clipboard"); } }
+  });
+  const ct = $("copyText"); if(ct) ct.addEventListener("click", () => {
+    navigator.clipboard.writeText(mailText(a)).then(() => hud("Versi teks disalin"), () => hud("Browser menolak akses clipboard"));
+  });
+}
+async function exportAlert(){
+  if(typeof XLSX === "undefined"){ hud("Library Excel gagal dimuat"); return; }
+  const a = await alertsFor(state.alertDate); if(!a) return;
+  const head = ["REGION","CinemaSite","WeekWarnings","Productivity","Target","DW","StationPKDW","TrainingPKDW","Admits","ManHours","WarningDates"];
+  const row = r => [r.region, r.cinema, r.warn, r.prod==null?"":+r.prod.toFixed(2), r.target, r.pkdw, r.spkdw, r.tpkdw, r.admits==null?"":r.admits, r.mh, r.warnDates.join(", ")];
+  const wb = XLSX.utils.book_new();
+  const w1 = XLSX.utils.aoa_to_sheet([head, ...a.flagged.map(row)]); w1["!cols"] = [12,32,13,12,8,6,12,13,9,10,40].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, w1, "Flagged");
+  const w2 = XLSX.utils.aoa_to_sheet([[...head,"Flag"], ...a.rows.map(r => [...row(r), r.flag])]); w2["!cols"] = [12,32,13,12,8,6,12,13,9,10,40,7].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, w2, "All cinemas");
+  save(`DailyWorker_Productivity_${a.date}.xlsx`, new Uint8Array(XLSX.write(wb, {bookType:"xlsx", type:"array"})));
+}
+
 /* ===== View: Peta ===== */
 async function viewMap(c, alive){
   const key = state.month;
@@ -702,7 +810,7 @@ async function viewMap(c, alive){
 /* ===== View: Design System ===== */
 function viewDS(c){
   const sw = (name, token, use) => `<div class="swatch"><i style="background:var(${token})"></i><b>${name}</b><code>${token}</code><span class="muted">${use}</span></div>`;
-  c.innerHTML = header("Design System & Definisi", "Aturan visual dashboard ini dan cara setiap angka dihitung") + `
+  c.innerHTML = header("Design System & Definisi", "Aturan visual dashboard ini dan cara setiap angka dihitung", `<button class="btn" data-go="trend" type="button">Tren Bulanan ›</button><button class="btn" data-go="map" type="button">Peta Pengisian ›</button>`) + `
     <div class="card"><div class="card-head"><h2>Definisi data</h2><span class="sub">Sumber: spreadsheet “Man Hour Usage”, satu tab per bulan</span></div>
       <dl class="defs">
         <dt>PKDW (MH DW)</dt><dd>Station PKDW + Training PKDW. Jam kerja Daily Worker. Angka ini sama dengan kolom MTD “PKDW” di sheet.</dd>
@@ -712,6 +820,8 @@ function viewDS(c){
         <dt>Site</dt><dd>Satu cinema berdasarkan kode di depan nama (mis. “49-LIVING WORLD PEKANBARU”). Saat ini ada 59 site dan 73 baris, karena beberapa site punya baris VIP/Junior terpisah. Di “PKDW 59 Site”, baris-baris tersebut dijumlahkan per site.</dd>
         <dt>Sudah isi</dt><dd>Kolom <b>Station PKWT</b> pada tanggal itu sudah terisi, termasuk angka 0. Kolom lain (PKDW, Training, Back Up MOD, Admits) tidak menentukan status isi.</dd>
         <dt>Hari belum isi</dt><dd>Jumlah tanggal sebelum hari ini yang belum terisi. Tanggal hari ini belum dihitung karena tenggatnya H-1.</dd>
+        <dt>Productivity</dt><dd>Admits ÷ Total MH per site per hari (baris VIP/Junior digabung). Admits kosong dihitung 0.</dd>
+        <dt>Productivity Alert</dt><dd>Site ter-flag kalau di tanggal itu PKDW &gt; 0 <b>dan</b> productivity &lt; target − 1. “Warnings minggu ini” = jumlah hari seperti itu dalam 7 hari terakhir. Target (12/14) dan region ada di <code>targets.json</code>.</dd>
         <dt>Hari pakai DW</dt><dd>Jumlah tanggal dengan PKDW &gt; 0 di site tersebut.</dd>
         <dt>Δ bulan lalu</dt><dd>Di Ringkasan: PKDW bulan berjalan dibanding jumlah hari yang sama di bulan sebelumnya. Di tabel site: total bulan ini dikurangi total bulan lalu.</dd>
       </dl>
@@ -759,6 +869,7 @@ function viewDS(c){
     </div></div>`;
 }
 
+document.addEventListener("click", e => { const g = e.target.closest && e.target.closest("[data-go]"); if(g && state.view === "ds") setView(g.dataset.go); });
 /* ===== Site detail sheet ===== */
 async function openSite(code){
   const key = state.view === "h1" ? state.h1Date.slice(0,7) : state.month;
@@ -789,7 +900,7 @@ async function openSite(code){
 function wireCommon(c, trend){
   c.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => setView(b.dataset.go)));
   if(!trend) c.querySelectorAll("[data-site]").forEach(r => r.addEventListener("click", () => openSite(r.dataset.site)));
-  c.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => ({xlsx:exportMonth, csv:exportCsv, "trend-xlsx":exportTrend})[b.dataset.act]()));
+  c.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => ({xlsx:exportMonth, csv:exportCsv, "trend-xlsx":exportTrend, "alert-xlsx":exportAlert})[b.dataset.act]()));
 }
 
 /* ===== Exports ===== */
@@ -859,6 +970,7 @@ async function boot(){
     await loadData(); fillMonths();
     setView(state.view);
     h1Missing(yestIso).then(r => { badge(r ? new Set(r.missing.map(x=>x.code)).size : 0); }).catch(() => {});
+    alertsFor(yestIso).then(a => { const n = a ? a.flagged.length : 0; ["alertBadge","alertTabBadge"].forEach(id => { const b = $(id); b.hidden = !n; b.textContent = n; }); }).catch(() => {});
     const ageH = lastSync ? (Date.now() - lastSync)/36e5 : 99;
     setSync(ageH > 26 ? "err" : "live", "Data per " + stampText());
     $("dataStamp").textContent = "Data diambil dari “Man Hour Usage” pada " + stampText() + ". Diperbarui otomatis tiap hari.";

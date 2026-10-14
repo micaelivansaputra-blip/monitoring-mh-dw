@@ -12,4 +12,5 @@ Spreadsheet ID: `1U_tpeKDUh983e6Ez13_j-JRCyXUtNjFPnDoIm7AhOWk`
 4. Jalankan: `node scripts/build-data.js raw/*.json`
    - Script berhenti dengan kode ≠ 0 kalau tidak ada bulan yang berhasil diproses. Kalau itu terjadi, **jangan commit**, dan laporkan errornya.
 5. Commit **hanya** `data.json` ke branch `main` dengan pesan `data: update <tanggal WIB>`, lalu push. `raw/` sudah di-.gitignore.
-6. Laporkan singkat: bulan yang diperbarui, total PKDW bulan berjalan, dan jumlah site yang belum mengisi H-1.
+6. Laporkan singkat: bulan yang diperbarui, total PKDW bulan berjalan, site yang belum mengisi H-1, dan **Productivity Alert H-1**:
+   `node scripts/report.js` mencetak semuanya.

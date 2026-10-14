@@ -142,6 +142,54 @@
     return {rows:rowStats, sites, daily, tot, lastIdx, dueN, future};
   }
 
-  const api = {num, tabKey, parseMonth, pack, unpack, stats, pad};
+  /* ===== Daily-worker productivity alert =====
+   * Per site per day (VIP/Junior rows summed into the site):
+   *   Productivity = Admits / Total MH   (Total MH = PKWT + PKDW, incl. Back Up MOD)
+   *   Warning day  = PKDW > 0  AND  Productivity < Target − tolerance   (empty Admits counts as 0)
+   *   Flag (date D) = D is a warning day.   Warnings this week = warning days in the window ending on D.
+   * Verified against DailyWorker_Productivity.xlsx (13 Oct 2026): 58/58 sites, flagged list identical.
+   */
+  function isoAdd(iso, n){ const [y,m,d] = iso.split("-").map(Number); const t = new Date(Date.UTC(y, m-1, d+n)); return t.getUTCFullYear()+"-"+pad(t.getUTCMonth()+1)+"-"+pad(t.getUTCDate()); }
+  function siteDays(m, i){
+    const out = new Map();
+    m.rows.forEach(r => {
+      const x = r.days[i]; let s = out.get(r.code);
+      if(!s){ s = {code:r.code, cinema:r.cinema, admits:null, mh:0, pkdw:0, spkdw:0, tpkdw:0, filled:false}; out.set(r.code, s); }
+      if(x.admits!=null) s.admits = (s.admits||0) + x.admits;
+      s.mh += x.pkdw + x.pkwt; s.pkdw += x.pkdw; s.spkdw += x.spkdw||0; s.tpkdw += x.tpkdw||0; s.filled = s.filled || x.filled;
+    });
+    out.forEach(s => { s.prod = s.mh>0 ? (s.admits||0)/s.mh : null; s.admitsMissing = s.admits==null && s.mh>0; });   // empty Admits counts as 0, same as the reference report
+    return out;
+  }
+  // getMonth(key "YYYY-MM") -> unpacked month or null.  cfg = targets.json
+  function prodAlerts(getMonth, dateIso, cfg){
+    cfg = cfg || {}; const tol = cfg.tolerance!=null ? cfg.tolerance : 1, win = cfg.windowDays || 7, siteCfg = cfg.sites || {};
+    const dayCache = {};
+    const dayFor = iso => {
+      if(iso in dayCache) return dayCache[iso];
+      const m = getMonth(iso.slice(0,7)); let r = null;
+      if(m){ const i = m.dates.findIndex(d => d.iso === iso); if(i>=0) r = siteDays(m, i); }
+      return dayCache[iso] = r;
+    };
+    const today = dayFor(dateIso);
+    if(!today) return null;
+    const targetOf = code => (siteCfg[code] && siteCfg[code].target) || cfg.defaultTarget || 14;
+    const warnOn = (s, code) => !!s && s.pkdw > 0 && s.prod != null && s.prod < targetOf(code) - tol;
+    const windowIsos = Array.from({length:win}, (_,k) => isoAdd(dateIso, k-win+1));
+    const rows = [...today.values()].map(s => {
+      const c = siteCfg[s.code] || {};
+      const warnDates = windowIsos.filter(iso => { const d = dayFor(iso); return d && warnOn(d.get(s.code), s.code); });
+      return {code:s.code, cinema:s.cinema, region:c.region || "Belum ada region", target:targetOf(s.code), hasTarget:!!c.target,
+        warn:warnDates.length, warnDates, prod:s.prod, admits:s.admits, mh:s.mh, pkdw:s.pkdw, spkdw:s.spkdw, tpkdw:s.tpkdw,
+        filled:s.filled, admitsMissing:s.admitsMissing, flag:warnOn(s, s.code)};
+    });
+    const regionNo = r => { const m = /(\d+)/.exec(r); return m ? +m[1] : 99; };
+    rows.sort((a,b) => regionNo(a.region) - regionNo(b.region) || a.cinema.localeCompare(b.cinema));
+    const flagged = rows.filter(r => r.flag).sort((a,b) => regionNo(a.region) - regionNo(b.region) || a.prod - b.prod);   // lowest productivity first, like the reference e-mail
+    return {date:dateIso, window:windowIsos, tolerance:tol, rows, flagged,
+      missingWindow: windowIsos.filter(iso => !dayFor(iso)), noTarget: rows.filter(r => !r.hasTarget)};
+  }
+
+  const api = {num, tabKey, parseMonth, pack, unpack, stats, pad, isoAdd, siteDays, prodAlerts};
   if(typeof module !== "undefined" && module.exports) module.exports = api; else root.MHCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

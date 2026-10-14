@@ -307,6 +307,10 @@ dl.defs dd{margin:0;color:var(--label-2)}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 body{margin:0}
+.meter{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--fill);overflow:hidden;vertical-align:middle;margin-right:8px}
+.meter i{display:block;height:100%;border-radius:3px}
+.usage{display:inline-flex;align-items:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chart .mk-b{fill:var(--label-3)}
 .mail-paper{background:#ffffff;color:#111111;border-radius:var(--r-card);box-shadow:var(--shadow);padding:var(--s5);overflow-x:auto}
 .mail-paper table{width:auto}
 .mail-paper th,.mail-paper td{white-space:nowrap;position:static}
@@ -328,6 +332,7 @@ img{max-width:100%}
     <button class="nav-item" data-view="alert" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.6v.01"/></svg>Productivity Alert<span class="badge" id="alertBadge" hidden></span></button>
     <div class="side-label">LAPORAN</div>
     <button class="nav-item" data-view="sites" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12"/><path d="M8 21v-6h8v6M3 21h18"/></svg>PKDW 59 Site</button>
+    <button class="nav-item" data-view="budget" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V11M10 20V6M16 20v-6"/><path d="M3 4.5h6M13 9h6" stroke-dasharray="2 2"/><path d="M2 20h20"/></svg>Budget vs Actual</button>
     <button class="nav-item" data-view="trend" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Tren Bulanan</button>
     <button class="nav-item" data-view="map" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/></svg>Peta Pengisian</button>
     <div class="side-label">LAINNYA</div>
@@ -404,11 +409,12 @@ const ICON = {
 /* ===== State ===== */
 let DATA = null;           // parsed data.json
 let TARGETS = null;        // targets.json (region + productivity target per site)
+let BUDGET = null;         // budget.json (DW MH budget per site per week)
 let tabs = {};            // key -> title
 let cache = {};           // key -> {m, st}
 let lastSync = null;
-const VIEWS = {overview:"Ringkasan", h1:"Cek Pengisian H-1", alert:"Productivity Alert", sites:"PKDW 59 Site", trend:"Tren Bulanan", map:"Peta Pengisian", ds:"Design System & Definisi"};
-const state = { view:"overview", month: yestIso.slice(0,7), h1Date: yestIso, siteFilter:"all", q:"", perFormat:false, sort:{k:"pkdw",dir:-1}, trendN:6, alertDate: yestIso, alertMode:"flagged" };
+const VIEWS = {overview:"Ringkasan", h1:"Cek Pengisian H-1", alert:"Productivity Alert", budget:"Budget vs Actual", sites:"PKDW 59 Site", trend:"Tren Bulanan", map:"Peta Pengisian", ds:"Design System & Definisi"};
+const state = { view:"overview", month: yestIso.slice(0,7), h1Date: yestIso, siteFilter:"all", q:"", perFormat:false, sort:{k:"pkdw",dir:-1}, trendN:6, alertDate: yestIso, alertMode:"flagged", budgetCut:null, budgetFilter:"active" };
 try{ const v = localStorage.getItem("mhdw.view"); if(v && VIEWS[v]) state.view = v; }catch(e){}
 
 /* ===== Data (data.json, rebuilt daily from Google Sheets) ===== */
@@ -417,6 +423,7 @@ async function loadData(){
   if(!res.ok) throw {code:"no_data", message:"data.json " + res.status};
   DATA = await res.json();
   try{ const t = await fetch("targets.json?t=" + Date.now(), {cache:"no-store"}); TARGETS = t.ok ? await t.json() : null; }catch(e){ TARGETS = null; }
+  try{ const t = await fetch("budget.json?t=" + Date.now(), {cache:"no-store"}); BUDGET = t.ok ? await t.json() : null; }catch(e){ BUDGET = null; }
   tabs = {}; Object.keys(DATA.months||{}).forEach(k => tabs[k] = DATA.months[k].title);
   cache = {}; trendCache = null;
   lastSync = DATA.generatedAt ? new Date(DATA.generatedAt).getTime() : null;
@@ -475,13 +482,13 @@ function setView(v){
   state.view = v; try{ localStorage.setItem("mhdw.view", v); }catch(e){}
   document.querySelectorAll("[data-view]").forEach(b => { if(b.dataset.view===v) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   $("compactTitle").textContent = VIEWS[v];
-  $("monthSel").hidden = !["overview","sites","map"].includes(v);
+  $("monthSel").hidden = !["overview","sites","map","budget"].includes(v);
   window.scrollTo(0,0);
   render();
 }
 document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
 addEventListener("scroll", () => $("navbar").classList.toggle("scrolled", scrollY > 30), {passive:true});
-$("monthSel").addEventListener("change", e => { state.month = e.target.value; render(); });
+$("monthSel").addEventListener("change", e => { state.month = e.target.value; state.budgetCut = null; render(); });
 $("refreshBtn").addEventListener("click", () => boot(true));
 
 function fillMonths(){
@@ -493,7 +500,7 @@ function fillMonths(){
 let renderToken = 0;
 async function render(){
   const tok = ++renderToken; const c = $("content");
-  const fns = {overview:viewOverview, h1:viewH1, alert:viewAlert, sites:viewSites, trend:viewTrend, map:viewMap, ds:viewDS};
+  const fns = {overview:viewOverview, h1:viewH1, alert:viewAlert, budget:viewBudget, sites:viewSites, trend:viewTrend, map:viewMap, ds:viewDS};
   try{ await fns[state.view](c, () => tok === renderToken); }
   catch(err){ if(tok===renderToken) c.innerHTML = header(VIEWS[state.view], "") + errBox(err); }
 }
@@ -789,6 +796,113 @@ async function exportAlert(){
   save(`DailyWorker_Productivity_${a.date}.xlsx`, new Uint8Array(XLSX.write(wb, {bookType:"xlsx", type:"array"})));
 }
 
+/* ===== View: Budget vs Actual ===== */
+const BSTAT = {over:["Over budget","red"], nobudget:["Tanpa budget","orange"], early:["Pakai sebelum jadwal","orange"], near:["Mendekati (≥90%)","orange"], ok:["Dalam budget","green"], none:["Tidak pakai",""]};
+function monthEnd(key){ const [y,m] = key.split("-").map(Number); return key + "-" + pad(new Date(Date.UTC(y, m, 0)).getUTCDate()); }
+function bvaCut(key){ const end = monthEnd(key), start = key + "-01"; let c = state.budgetCut && state.budgetCut.slice(0,7) === key ? state.budgetCut : (yestIso < end ? yestIso : end); if(c < start) c = start; return c; }
+async function bvaFor(key, cut){ const g = await getMonth(key); return g && BUDGET ? MHCore.budgetVsActual(g.m, BUDGET, cut) : null; }
+function groupedChart(periods){
+  const W = 760, H = 230, L = 46, R = 10, T = 14, B = 30, n = Math.max(1, periods.length);
+  const max = Math.max(1, ...periods.map(p => Math.max(p.budget, p.actual)));
+  const step = niceStep(max/4), top = Math.ceil(max/step)*step, y = v => T + (H-T-B)*(1 - v/top);
+  const slot = (W-L-R)/n, bw = Math.min(34, slot*0.32);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Budget vs actual per minggu">`;
+  for(let v=0; v<=top+1e-9; v+=step) s += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-8}" y="${y(v)+3.5}" text-anchor="end">${fmt(v)}</text>`;
+  periods.forEach((p,i) => {
+    const cx = L + i*slot + slot/2, tip = `Minggu ${p.week} · ${p.label}|Budget ${fmt(p.budget)} MH${p.elapsed && p.elapsed<p.days ? " (s.d. tgl "+fmt(p.budgetToDate)+")" : ""}|Actual ${fmt(p.actual)} MH${p.elapsed===0 ? " · belum berjalan" : ""}`;
+    s += `<rect x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent" data-tip="${esc(tip)}"/>`;
+    s += `<path class="mk-b" d="${barPath(cx-bw-1, y(p.budget), bw, (H-B)-y(p.budget), 4)}" data-tip="${esc(tip)}"/>`;
+    s += `<path class="mk ${p.actual > p.budgetToDate && p.elapsed ? "hl" : ""}" d="${barPath(cx+1, y(p.actual), bw, (H-B)-y(p.actual), 4)}" data-tip="${esc(tip)}"/>`;
+    s += `<text class="ax" x="${cx}" y="${H-12}" text-anchor="middle">${esc(p.label)}</text><text class="ax" x="${cx}" y="${H-1}" text-anchor="middle" style="opacity:.7">W${p.week}</text>`;
+  });
+  return s + `</svg>`;
+}
+async function viewBudget(c, alive){
+  const key = state.month, cut = bvaCut(key);
+  c.innerHTML = loading("Budget vs Actual", monthName(key));
+  const r = await bvaFor(key, cut); if(!alive()) return;
+  const tools = `<label class="muted" for="bvCut" style="font-size:var(--t-subhead)">s.d.</label><input type="date" class="datefield" id="bvCut" value="${cut}" min="${key}-01" max="${monthEnd(key)}" aria-label="Cut-off">`;
+  if(!BUDGET){ c.innerHTML = header("Budget vs Actual", monthName(key)) + `<div class="notice warn"><b>budget.json tidak terbaca</b><span>File budget belum ada di situs ini.</span></div>`; return; }
+  if(!r){ c.innerHTML = header("Budget vs Actual", monthName(key), tools) + `<div class="notice warn"><b>Belum ada budget untuk ${monthName(key)}</b><span>Budget yang tersedia: September–Desember 2026. Pilih bulan lain di kanan atas, atau tambahkan budget bulan ini ke budget.json.</span></div>`; wireBudget(c, null); return; }
+  const T = r.tot, usageP = T.usage==null ? 0 : T.usage;
+  const flt = state.budgetFilter || "active";
+  let list = r.rows.filter(x => flt==="active" ? x.status!=="none" : flt==="all" ? true : flt==="ok" ? (x.status==="ok"||x.status==="near") : flt==="nobudget" ? (x.status==="nobudget"||x.status==="early") : x.status===flt);
+  list.sort((a,b) => b.variance - a.variance || b.actual - a.actual);
+  const seg = (v,l) => `<button type="button" data-bf="${v}" aria-pressed="${flt===v}">${l}</button>`;
+  const meter = u => { if(u==null) return `<span class="muted">–</span>`; const w = Math.min(100, u*100), col = u>1 ? "var(--red)" : u>=0.9 ? "var(--orange)" : "var(--green)"; return `<span class="meter"><i style="width:${w}%;background:${col}"></i></span><span>${fmt(u*100)}%</span>`; };
+  c.innerHTML = header("Budget vs Actual", `${monthName(key)} · Daily Worker MH s.d. ${dateLong(r.cut)}`,
+      tools + `<button class="btn" id="bvCopy" type="button">${ICON.copy}Salin ringkasan</button><button class="btn filled" data-act="budget-xlsx">${ICON.down}Unduh Excel</button>`) + `
+    <div class="kpis">
+      <div class="kpi hero"><span class="k">Actual s.d. ${+r.cut.slice(8)} ${MON_S[+key.slice(5)-1]} vs budget s.d. tanggal</span><span class="v">${fmt(T.actual)} <small>/ ${fmt(T.budgetToDate)} MH</small></span><span class="s"><span class="delta">${fmt(usageP*100)}% dari budget</span> selisih ${T.variance>0?"+":""}${fmt(T.variance)} MH</span></div>
+      <div class="kpi"><span class="k">Budget ${MONTH_ID[+key.slice(5)-1]}</span><span class="v">${fmt(T.budgetMonth)}<small> MH</small></span><span class="s">Sisa <b style="color:${T.remaining<0?"var(--red-text)":"inherit"}">${fmt(T.remaining)}</b> MH untuk sisa bulan</span></div>
+      <div class="kpi"><span class="k">${ICON.warn}Perlu perhatian</span><span class="v" style="color:var(--red-text)">${r.counts.over}<small> over</small> <span style="color:var(--orange-text)">${r.counts.nobudget + r.counts.early}</span><small> tanpa budget</small></span><span class="s">${r.counts.ok + r.counts.near} site dalam budget · ${r.counts.near} mendekati</span></div>
+    </div>
+    <div class="card chart"><div class="card-head"><h2>Budget vs actual per minggu</h2><div class="legend"><span><i style="background:var(--label-3)"></i>Budget</span><span><i style="background:var(--blue)"></i>Actual</span><span><i style="background:var(--orange)"></i>Actual &gt; budget s.d. tgl</span></div></div>${groupedChart(r.periods)}</div>
+    <div class="row"><div class="segmented" role="group" aria-label="Filter">${seg("active","Semua aktif")}${seg("over","Over budget ("+r.counts.over+")")}${seg("nobudget","Tanpa budget ("+(r.counts.nobudget+r.counts.early)+")")}${seg("ok","Dalam budget ("+(r.counts.ok+r.counts.near)+")")}${seg("all","Semua 59")}</div></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Site</th><th class="r">Budget bulan</th><th class="r">Budget s.d. tgl</th><th class="r">Actual s.d. tgl</th><th class="r">Selisih</th><th>% pemakaian</th><th class="r">Sisa budget bulan</th><th>Status</th></tr></thead>
+      <tbody>${list.map(x => `<tr data-bsite="${x.code}">
+        <td class="site"><b>${esc(x.cinema)}</b></td><td class="r">${fmt(x.budgetMonth)}</td><td class="r">${fmt(x.budgetToDate)}</td><td class="r"><b>${fmt(x.actual)}</b></td>
+        <td class="r">${x.variance>0.5?`<span class="delta up" style="background:var(--red-tint);color:var(--red-text)">+${fmt(x.variance)}</span>`:x.variance<-0.5?`<span class="delta down">${fmt(x.variance)}</span>`:`<span class="muted">0</span>`}</td>
+        <td><span class="usage">${meter(x.usage)}</span></td>
+        <td class="r" style="${x.remaining<0?"color:var(--red-text);font-weight:600":""}">${fmt(x.remaining)}</td>
+        <td><span class="tag ${BSTAT[x.status][1]}">${BSTAT[x.status][0]}</span></td></tr>`).join("") || `<tr><td colspan="8" class="muted">Tidak ada site di filter ini.</td></tr>`}</tbody>
+      <tfoot><tr><td>Total ${list.length} site</td>${["budgetMonth","budgetToDate","actual","variance"].map(k => `<td class="r">${fmt(list.reduce((a,x)=>a+x[k],0))}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a,x)=>a+x.remaining,0))}</td><td></td></tr></tfoot>
+    </table></div>
+    <p class="foot">Budget s.d. tanggal = budget minggu yang sudah lewat + bagian pro-rata harian dari minggu yang sedang berjalan. Actual = Station PKDW + Training PKDW dari tanggal 1 s.d. tanggal cut-off (default kemarin). “Tanpa budget” = site memakai DW padahal budget-nya “–”. Budget dari ${esc(BUDGET.source||"budget.json")}; angka dibulatkan.</p>`;
+  wireBudget(c, r);
+}
+function wireBudget(c, r){
+  const d = $("bvCut"); if(d) d.addEventListener("change", e => { if(e.target.value){ state.budgetCut = e.target.value; render(); } });
+  c.querySelectorAll("[data-bf]").forEach(b => b.addEventListener("click", () => { state.budgetFilter = b.dataset.bf; render(); }));
+  c.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => ({"budget-xlsx":exportBudget})[b.dataset.act] && exportBudget()));
+  if(!r) return;
+  c.querySelectorAll("[data-bsite]").forEach(row => row.addEventListener("click", () => openBudgetSite(r, row.dataset.bsite)));
+  const cp = $("bvCopy"); if(cp) cp.addEventListener("click", () => {
+    const T = r.tot, over = r.rows.filter(x => x.status==="over").sort((a,b)=>b.variance-a.variance), nob = r.rows.filter(x => x.status==="nobudget"||x.status==="early").sort((a,b)=>b.actual-a.actual);
+    const txt = `Update Daily Worker MH — Budget vs Actual ${monthName(r.month)} (1–${+r.cut.slice(8)} ${MON_S[+r.month.slice(5)-1]})\n\n`+
+      `• Actual: ${fmt(T.actual)} MH vs budget s.d. tanggal ${fmt(T.budgetToDate)} MH (${fmt(T.usage*100)}%)\n• Budget 1 bulan: ${fmt(T.budgetMonth)} MH, sisa ${fmt(T.remaining)} MH\n`+
+      `• Over budget: ${over.length} site${over.length? "\n" + over.slice(0,8).map(x => `   - ${x.cinema}: ${fmt(x.actual)} vs ${fmt(x.budgetToDate)} (+${fmt(x.variance)})`).join("\n") : ""}\n`+
+      `• Pakai DW tanpa budget: ${nob.length} site${nob.length? "\n" + nob.slice(0,8).map(x => `   - ${x.cinema}: ${fmt(x.actual)} MH`).join("\n") + (nob.length>8 ? `\n   - dan ${nob.length-8} site lain` : "") : ""}\n\nDetail per site: ${location.href.split("#")[0]}`;
+    navigator.clipboard.writeText(txt).then(() => hud("Ringkasan disalin"), () => hud("Browser menolak akses clipboard"));
+  });
+}
+function openBudgetSite(r, code){
+  const x = r.rows.find(y => y.code === code); if(!x) return;
+  const scrim = document.createElement("div"); scrim.className = "scrim";
+  scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(x.cinema)}">
+    <div class="sheet-head"><div><h2>${esc(x.cinema)}</h2><p>${monthName(r.month)} · s.d. ${dateLong(r.cut)}</p></div><button class="close" type="button" aria-label="Tutup">${ICON.x}</button></div>
+    <div class="kpis">
+      <div class="kpi"><span class="k">Actual s.d. tgl</span><span class="v">${fmt(x.actual)}<small> MH</small></span><span class="s">budget s.d. tgl ${fmt(x.budgetToDate)}</span></div>
+      <div class="kpi"><span class="k">Budget bulan</span><span class="v">${fmt(x.budgetMonth)}<small> MH</small></span><span class="s">sisa ${fmt(x.remaining)} MH</span></div>
+      <div class="kpi"><span class="k">Status</span><span class="v" style="font-size:20px"><span class="tag ${BSTAT[x.status][1]}" style="font-size:14px">${BSTAT[x.status][0]}</span></span><span class="s">${x.usage==null?"tanpa budget s.d. tgl":fmt(x.usage*100)+"% pemakaian"}</span></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Minggu</th><th>Tanggal</th><th class="r">Budget</th><th class="r">Budget s.d. tgl</th><th class="r">Actual</th><th class="r">Selisih</th></tr></thead>
+    <tbody>${x.periods.map(p => `<tr><td>W${p.week}</td><td>${p.label}${p.elapsed && p.elapsed<p.days ? ` <span class="tag">berjalan ${p.elapsed}/${p.days} hari</span>` : p.elapsed===0 ? ` <span class="muted">belum</span>` : ""}</td><td class="r">${fmt(p.budget)}</td><td class="r">${fmt(p.budgetToDate)}</td><td class="r"><b>${fmt(p.actual)}</b></td><td class="r" style="${p.actual-p.budgetToDate>0.5?"color:var(--red-text);font-weight:600":""}">${p.elapsed? (p.actual-p.budgetToDate>0?"+":"")+fmt(p.actual-p.budgetToDate) : "–"}</td></tr>`).join("")}</tbody></table></div>
+  </div>`;
+  const close = () => { scrim.remove(); document.removeEventListener("keydown", onKey); };
+  const onKey = e => { if(e.key === "Escape") close(); };
+  scrim.addEventListener("click", e => { if(e.target === scrim || e.target.closest(".close")) close(); });
+  document.addEventListener("keydown", onKey); document.body.appendChild(scrim);
+}
+async function exportBudget(){
+  if(typeof XLSX === "undefined"){ hud("Library Excel gagal dimuat"); return; }
+  const key = state.month, r = await bvaFor(key, bvaCut(key)); if(!r) return;
+  const rows = r.rows.slice().sort((a,b) => b.variance - a.variance);
+  const wb = XLSX.utils.book_new();
+  const head = ["Kode","Site","Budget bulan (MH)","Budget s.d. tgl (MH)","Actual s.d. tgl (MH)","Selisih","% Pemakaian","Sisa budget bulan","Status"];
+  const ws1 = XLSX.utils.aoa_to_sheet([[`Daily Worker MH — Budget vs Actual ${monthName(key)}, s.d. ${r.cut}`],[`Actual = Station PKDW + Training PKDW. Budget s.d. tgl pro-rata harian untuk minggu berjalan. Diunduh ${new Date().toLocaleString("id-ID")}`],[],head,
+    ...rows.map(x => [+x.code, x.cinema, x.budgetMonth, +x.budgetToDate.toFixed(1), x.actual, +x.variance.toFixed(1), x.usage==null?"":+(x.usage*100).toFixed(1), +x.remaining.toFixed(1), BSTAT[x.status][0]]),
+    ["","TOTAL", r.tot.budgetMonth, +r.tot.budgetToDate.toFixed(1), r.tot.actual, +r.tot.variance.toFixed(1), r.tot.usage==null?"":+(r.tot.usage*100).toFixed(1), +r.tot.remaining.toFixed(1), ""]]);
+  ws1["!cols"] = [6,34,15,16,16,10,12,16,18].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws1, "Budget vs Actual");
+  const ph = r.periods.flatMap(p => [`W${p.week} ${p.label} Budget`, `W${p.week} ${p.label} Actual`]);
+  const ws2 = XLSX.utils.aoa_to_sheet([["Kode","Site", ...ph], ...rows.map(x => [+x.code, x.cinema, ...x.periods.flatMap(p => [p.budget, p.actual])])]);
+  ws2["!cols"] = [{wch:6},{wch:34}, ...ph.map(() => ({wch:12}))];
+  XLSX.utils.book_append_sheet(wb, ws2, "Per Minggu");
+  save(`DW_Budget_vs_Actual_${monthName(key).replace(" ","_")}_sd_${r.cut}.xlsx`, new Uint8Array(XLSX.write(wb, {bookType:"xlsx", type:"array"})));
+}
+
 /* ===== View: Peta ===== */
 async function viewMap(c, alive){
   const key = state.month;
@@ -810,7 +924,7 @@ async function viewMap(c, alive){
 /* ===== View: Design System ===== */
 function viewDS(c){
   const sw = (name, token, use) => `<div class="swatch"><i style="background:var(${token})"></i><b>${name}</b><code>${token}</code><span class="muted">${use}</span></div>`;
-  c.innerHTML = header("Design System & Definisi", "Aturan visual dashboard ini dan cara setiap angka dihitung", `<button class="btn" data-go="trend" type="button">Tren Bulanan ›</button><button class="btn" data-go="map" type="button">Peta Pengisian ›</button>`) + `
+  c.innerHTML = header("Design System & Definisi", "Aturan visual dashboard ini dan cara setiap angka dihitung", `<button class="btn" data-go="budget" type="button">Budget vs Actual ›</button><button class="btn" data-go="trend" type="button">Tren Bulanan ›</button><button class="btn" data-go="map" type="button">Peta Pengisian ›</button>`) + `
     <div class="card"><div class="card-head"><h2>Definisi data</h2><span class="sub">Sumber: spreadsheet “Man Hour Usage”, satu tab per bulan</span></div>
       <dl class="defs">
         <dt>PKDW (MH DW)</dt><dd>Station PKDW + Training PKDW. Jam kerja Daily Worker. Angka ini sama dengan kolom MTD “PKDW” di sheet.</dd>
@@ -822,6 +936,7 @@ function viewDS(c){
         <dt>Hari belum isi</dt><dd>Jumlah tanggal sebelum hari ini yang belum terisi. Tanggal hari ini belum dihitung karena tenggatnya H-1.</dd>
         <dt>Productivity</dt><dd>Admits ÷ Total MH per site per hari (baris VIP/Junior digabung). Admits kosong dihitung 0.</dd>
         <dt>Productivity Alert</dt><dd>Site ter-flag kalau di tanggal itu PKDW &gt; 0 <b>dan</b> productivity &lt; target − 1. “Warnings minggu ini” = jumlah hari seperti itu dalam 7 hari terakhir. Target (12/14) dan region ada di <code>targets.json</code>.</dd>
+        <dt>Budget vs Actual</dt><dd>Budget DW per site per minggu dari budget.json. Budget s.d. tanggal = minggu yang sudah lewat + pro-rata harian minggu berjalan. Actual = PKDW tanggal 1 s.d. cut-off. “Tanpa budget” = memakai DW padahal budget “–”.</dd>
         <dt>Hari pakai DW</dt><dd>Jumlah tanggal dengan PKDW &gt; 0 di site tersebut.</dd>
         <dt>Δ bulan lalu</dt><dd>Di Ringkasan: PKDW bulan berjalan dibanding jumlah hari yang sama di bulan sebelumnya. Di tabel site: total bulan ini dikurangi total bulan lalu.</dd>
       </dl>

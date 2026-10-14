@@ -190,6 +190,48 @@
       missingWindow: windowIsos.filter(iso => !dayFor(iso)), noTarget: rows.filter(r => !r.hasTarget)};
   }
 
-  const api = {num, tabKey, parseMonth, pack, unpack, stats, pad, isoAdd, siteDays, prodAlerts};
+  /* ===== Budget vs Actual (Daily Worker MH) =====
+   * budget.json: periods [{start,end,week}] + sites {code: [MH per period]}.
+   * For month M and cut-off date C (inclusive):
+   *   Budget month      = Σ budget of periods inside M
+   *   Budget to date    = Σ budget × (days of the period ≤ C) / (days in period)   (pro-rata for the running week)
+   *   Actual to date    = Σ PKDW (Station + Training) from the 1st of M to C
+   */
+  function daysBetween(a, b){ return Math.round((Date.parse(b+"T00:00:00Z") - Date.parse(a+"T00:00:00Z"))/864e5) + 1; }
+  function budgetVsActual(m, budget, cutIso){
+    if(!m || !budget || !m.dates.length) return null;
+    const mStart = m.dates[0].iso, mEnd = m.dates[m.dates.length-1].iso;
+    const cut = cutIso < mStart ? null : (cutIso > mEnd ? mEnd : cutIso);
+    const periods = (budget.periods||[]).map((p,i) => ({...p, idx:i})).filter(p => p.start >= mStart && p.end <= mEnd);
+    if(!periods.length) return null;
+    periods.forEach(p => { p.days = daysBetween(p.start, p.end); p.elapsed = !cut || cut < p.start ? 0 : Math.min(p.days, daysBetween(p.start, cut)); p.label = `${+p.start.slice(8)}–${+p.end.slice(8)}`; });
+    const sd = new Map(); // code -> per-day pkdw by iso
+    m.rows.forEach(r => { let s = sd.get(r.code); if(!s){ s = {code:r.code, cinema:r.cinema, formats:[], byIso:{}}; sd.set(r.code, s); }
+      s.formats.push(r.format); r.days.forEach((x,i) => { const iso = m.dates[i].iso; s.byIso[iso] = (s.byIso[iso]||0) + x.pkdw; }); });
+    Object.keys(budget.sites||{}).forEach(code => { if(!sd.has(code) && (budget.sites[code]||[]).some(v => v>0)) sd.set(code, {code, cinema:code+"-(tidak ada di sheet)", formats:[], byIso:{}}); });
+    const rows = [...sd.values()].map(s => {
+      const b = budget.sites[s.code] || [];
+      const per = periods.map(p => {
+        const bud = b[p.idx] || 0;
+        let act = 0; for(let k=0;k<p.days;k++){ const iso = isoAdd(p.start, k); if(cut && iso <= cut) act += s.byIso[iso] || 0; }
+        return {label:p.label, week:p.week, start:p.start, end:p.end, budget:bud, budgetToDate: bud * p.elapsed / p.days, actual:act, elapsed:p.elapsed, days:p.days};
+      });
+      const sum = k => per.reduce((a,x) => a + x[k], 0);
+      const r = {code:s.code, cinema:s.cinema, formats:s.formats, periods:per, budgetMonth:sum("budget"), budgetToDate:sum("budgetToDate"), actual:sum("actual")};
+      r.variance = r.actual - r.budgetToDate; r.remaining = r.budgetMonth - r.actual;
+      r.usage = r.budgetToDate > 0 ? r.actual / r.budgetToDate : null;
+      r.status = r.actual === 0 && r.budgetMonth === 0 ? "none" : r.budgetToDate === 0 && r.actual > 0 ? (r.budgetMonth > 0 ? "early" : "nobudget") : r.actual > r.budgetToDate ? "over" : r.usage >= 0.9 ? "near" : "ok";
+      return r;
+    });
+    const T = k => rows.reduce((a,r) => a + r[k], 0);
+    const tot = {budgetMonth:T("budgetMonth"), budgetToDate:T("budgetToDate"), actual:T("actual")};
+    tot.variance = tot.actual - tot.budgetToDate; tot.remaining = tot.budgetMonth - tot.actual; tot.usage = tot.budgetToDate ? tot.actual/tot.budgetToDate : null;
+    const byPeriod = periods.map((p,i) => ({label:p.label, week:p.week, start:p.start, end:p.end, days:p.days, elapsed:p.elapsed,
+      budget: rows.reduce((a,r) => a + r.periods[i].budget, 0), budgetToDate: rows.reduce((a,r) => a + r.periods[i].budgetToDate, 0), actual: rows.reduce((a,r) => a + r.periods[i].actual, 0)}));
+    const count = st => rows.filter(r => r.status === st).length;
+    return {month:m.key, cut, periods:byPeriod, rows, tot, counts:{over:count("over"), nobudget:count("nobudget"), early:count("early"), near:count("near"), ok:count("ok"), none:count("none")}};
+  }
+
+  const api = {num, tabKey, parseMonth, pack, unpack, stats, pad, isoAdd, siteDays, prodAlerts, budgetVsActual};
   if(typeof module !== "undefined" && module.exports) module.exports = api; else root.MHCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

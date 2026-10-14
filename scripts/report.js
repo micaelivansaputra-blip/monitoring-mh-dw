@@ -5,6 +5,7 @@ const path = require("path");
 const C = require(path.join(__dirname, "..", "core.js"));
 const data = require(path.join(__dirname, "..", "data.json"));
 let cfg = {}; try{ cfg = require(path.join(__dirname, "..", "targets.json")); }catch(e){}
+let budget = null; try{ budget = require(path.join(__dirname, "..", "budget.json")); }catch(e){}
 const nowJkt = new Date(Date.now() + 7*3600e3).toISOString().slice(0,10);
 const date = process.argv[2] || C.isoAdd(nowJkt, -1);
 const cache = {}; const getMonth = k => data.months[k] ? (cache[k] = cache[k] || C.unpack(data.months[k])) : null;
@@ -24,5 +25,15 @@ const a = C.prodAlerts(getMonth, date, cfg);
 if(a){
   out.push(`Productivity Alert ${date}: ${a.flagged.length} site`);
   a.flagged.forEach(r => out.push(`- ${r.region} ${r.cinema}: ${r.warn}x minggu ini, prod ${(Math.round(r.prod*10)/10).toFixed(1)} vs target ${r.target}, DW ${r.pkdw} jam`));
+}
+if(m && budget){
+  m.key = date.slice(0,7);
+  const bv = C.budgetVsActual(m, budget, date);
+  if(bv){
+    const f = v => Math.round(v).toLocaleString("id-ID");
+    out.push(`Budget vs Actual DW ${m.key} s.d. ${date}: actual ${f(bv.tot.actual)} MH vs budget s.d. tgl ${f(bv.tot.budgetToDate)} MH (${bv.tot.usage==null?"-":Math.round(bv.tot.usage*100)+"%"}), sisa budget bulan ${f(bv.tot.remaining)} MH`);
+    const over = bv.rows.filter(r => r.status==="over").sort((a,b)=>b.variance-a.variance);
+    out.push(`Over budget: ${over.length} site${over.length ? " — " + over.slice(0,5).map(r => `${r.cinema} (+${f(r.variance)})`).join(", ") : ""}; tanpa budget: ${bv.counts.nobudget + bv.counts.early} site`);
+  }
 }
 console.log(out.join("\n"));

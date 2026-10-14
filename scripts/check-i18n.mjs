@@ -14,12 +14,10 @@ for (const f of [...files, "index.html"]) {
   for (const m of s.matchAll(/data-i18n(?:-aria|-title)?="([^"]+)"/g)) used.add(m[1]);
 }
 // Keys built at runtime from fixed lists.
-["gMonitor", "gReports", "gOther", "overview", "h1", "alert", "sites", "budget", "trend", "map", "about", "more"].forEach(k => used.add("nav." + k));
+["gMonitor", "gReports", "overview", "h1", "alert", "sites", "budget", "trend", "map", "more"].forEach(k => used.add("nav." + k));
 ["overview", "h1", "alert", "sites", "more"].forEach(k => used.add("tab." + k));
 ["budget.flexOver", "budget.flexUnder"].forEach(k => used.add(k));
 ["over", "nobudget", "early", "near", "ok", "none"].forEach(k => used.add("bstat." + k));
-["pkdw", "pkwt", "total", "share", "site", "filled", "missed", "prod", "alert", "budget", "dwDays", "delta"].forEach(k => { used.add("def." + k); used.add("def." + k + ".d"); });
-["blue", "green", "orange", "red", "indigo", "bg", "surface", "fill", "label", "label2", "separator"].forEach(k => { used.add("sw." + k); used.add("sw." + k + ".d"); });
 
 const keys = d => new Set(Object.keys(d).filter(k => k !== "_cal"));
 const problems = [];

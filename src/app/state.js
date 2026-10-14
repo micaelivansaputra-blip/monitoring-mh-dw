@@ -1,7 +1,7 @@
 // UI state — what the user is looking at. Persisted bits: view and theme.
 import { YESTERDAY } from "./format.js";
 
-export const VIEWS = ["overview", "h1", "alert", "sites", "budget", "trend", "map", "about", "more"];
+export const VIEWS = ["overview", "h1", "alert", "sites", "budget", "trend", "map", "more"];
 /** Views whose content depends on the month picker. */
 export const MONTH_VIEWS = ["overview", "sites", "map", "budget"];
 

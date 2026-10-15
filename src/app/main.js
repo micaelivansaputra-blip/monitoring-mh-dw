@@ -16,16 +16,18 @@ import budget from "./features/budget.js";
 import trend from "./features/trend.js";
 import map from "./features/map.js";
 import more from "./features/more.js";
+import reasonsView, { openReason, exportReasons, needCount } from "./features/reasons.js";
+import { loadReasons, onReasons } from "./reasons.js";
 
-const FEATURES = {overview, h1, alert, sites, budget, trend, map, more};
+const FEATURES = {overview, h1, alert, reasons: reasonsView, sites, budget, trend, map, more};
 
 // Navigation model — one source for sidebar and tab bar.
 const NAV = [
-  {group: "nav.gMonitor", items: [["overview", ICON.grid], ["h1", ICON.checklist, "h1"], ["alert", ICON.alert, "alert"]]},
+  {group: "nav.gMonitor", items: [["overview", ICON.grid], ["h1", ICON.checklist, "h1"], ["alert", ICON.alert, "alert"], ["reasons", ICON.note, "reasons"]]},
   {group: "nav.gReports", items: [["sites", ICON.sites], ["budget", ICON.budget], ["trend", ICON.trend], ["map", ICON.map]]},
 ];
 const TABS = [["overview", ICON.grid, "tab.overview"], ["h1", ICON.checklist, "tab.h1", "h1"], ["alert", ICON.alert, "tab.alert", "alert"], ["sites", ICON.sites, "tab.sites"], ["more", ICON.more, "tab.more"]];
-const badges = {h1: 0, alert: 0};
+const badges = {h1: 0, alert: 0, reasons: 0};
 
 const app = {
   go(view) {
@@ -40,7 +42,7 @@ const app = {
 /* ---------- Shell ---------- */
 function renderChrome() {
   const badge = k => k && badges[k] ? `<span class="badge">${badges[k]}</span>` : "";
-  const cur = v => (v === state.view || (state.view !== "more" && v === "more" && ["budget", "trend", "map"].includes(state.view))) ? ' aria-current="page"' : "";
+  const cur = v => (v === state.view || (state.view !== "more" && v === "more" && ["budget", "trend", "map", "reasons"].includes(state.view))) ? ' aria-current="page"' : "";
   $("sideNav").innerHTML = NAV.map(g => `<div class="side-label">${t(g.group)}</div>` +
     g.items.map(([v, ic, b]) => `<button class="nav-item" type="button" data-go="${v}"${v === state.view ? ' aria-current="page"' : ""}>${ic}<span>${t("nav." + v)}</span>${badge(b)}</button>`).join("")).join("");
   $("tabbar").innerHTML = TABS.map(([v, ic, l, b]) => `<button type="button" data-go="${v}"${cur(v)}>${ic}${t(l)}${badge(b)}</button>`).join("");
@@ -81,12 +83,20 @@ function render() {
 
 /* ---------- Events (delegated once) ---------- */
 function wireGlobal() {
+  // Reason buttons sit inside clickable rows: handle them first (capture) so the row's own action doesn't fire.
+  document.addEventListener("click", e => {
+    const el = e.target.closest && e.target.closest("[data-reason]");
+    if (!el) return;
+    e.preventDefault(); e.stopPropagation();
+    try { openReason(JSON.parse(el.dataset.reason), app); } catch (err) { console.error(err); }
+  }, true);
   document.addEventListener("click", e => {
     const el = e.target.closest && e.target.closest("[data-go],[data-site],[data-act],[data-lang],[data-thm]");
     if (!el) return;
     if (el.dataset.go) return app.go(el.dataset.go);
     if (el.dataset.lang) return setLang(el.dataset.lang);
     if (el.dataset.thm) { state.theme = el.dataset.thm; persist(); applyTheme(); renderChrome(); if (state.view === "more") render(); return; }
+    if (el.dataset.act === "reasons-xlsx") return exportReasons();
     if (el.dataset.act && ACTIONS[el.dataset.act]) return ACTIONS[el.dataset.act]();
     if (el.dataset.site) {
       const key = el.dataset.month || (state.view === "h1" ? state.h1Date.slice(0, 7) : state.month);
@@ -109,6 +119,7 @@ async function boot() {
     badges.h1 = miss ? miss.bySite.size : 0;
     badges.alert = al ? al.flagged.length : 0;
     renderChrome(); render(); syncStatus();
+    loadReasons();
   } catch (err) {
     console.error(err);
     setSync("err", t("err.failed"));
@@ -116,6 +127,8 @@ async function boot() {
     $("content").innerHTML = header("Monitoring MH DW") + notice(a, esc(b), "err");
   } finally { $("refreshBtn").disabled = false; }
 }
+
+onReasons(() => { try { badges.reasons = needCount(); } catch (e) { badges.reasons = 0; } renderChrome(); render(); });
 
 applyTheme();
 $("sheetLink").href = SHEET_URL;

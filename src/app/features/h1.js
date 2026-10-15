@@ -6,6 +6,7 @@ import { header, kpi, kpis, notice, emptyState, tag } from "../ui/components.js"
 import { missingOn, store } from "../store.js";
 import { state } from "../state.js";
 import { SHEET_URL } from "./shared.js";
+import { reasonBtn } from "./reasons.js";
 
 export function reminderText(iso, bySite) {
   const lines = [...bySite.values()].map((rs, k) =>
@@ -33,7 +34,7 @@ export default {
         <h2 class="section-head">${t("h1.listTitle", {n: bySite.size})}</h2>
         <ul class="list">${[...bySite.values()].map(rs => {
           const r = rs[0], mm = Math.max(...rs.map(x => x.monthMiss));
-          return `<li class="clickable" data-site="${r.code}" data-month="${iso.slice(0, 7)}"><span class="ic">${esc(r.code)}</span><span class="main-t"><b>${esc(r.name)}</b><span>${rs.map(x => esc(x.format)).join(" · ")}</span></span><span class="trail">${tag(t("h1.thisMonth", {n: mm}), mm >= 3 ? "red" : mm >= 2 ? "orange" : "")}${ICON.chev}</span></li>`;
+          return `<li class="clickable" data-site="${r.code}" data-month="${iso.slice(0, 7)}"><span class="ic">${esc(r.code)}</span><span class="main-t"><b>${esc(r.name)}</b><span>${rs.map(x => esc(x.format)).join(" · ")}</span></span><span class="trail">${reasonBtn({site: r.code, cinema: r.cinema, date: iso, context: "h1"})}${tag(t("h1.thisMonth", {n: mm}), mm >= 3 ? "red" : mm >= 2 ? "orange" : "")}${ICON.chev}</span></li>`;
         }).join("")}</ul>
         <div class="card"><div class="card-head"><h3>${t("h1.reminderTitle")}</h3><button class="btn filled" id="copyBtn" type="button">${ICON.copy}${t("common.copy")}</button></div>
         <textarea id="remText" aria-label="${esc(t("h1.reminderTitle"))}">${esc(reminderText(iso, bySite))}</textarea>

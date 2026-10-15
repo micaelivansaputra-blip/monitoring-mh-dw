@@ -6,6 +6,10 @@ import { kpi, kpis, tag } from "../ui/components.js";
 import { columnChart } from "../ui/charts.js";
 import { openSheet } from "../ui/sheet.js";
 import { getMonth } from "../store.js";
+import { reasonSection } from "./reasons.js";
+import { YESTERDAY } from "../format.js";
+
+const monthEndOf = k => { const [y, m] = k.split("-").map(Number); return k + "-" + String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, "0"); };
 
 export function openSite(code, key) {
   const g = getMonth(key); if (!g) return;
@@ -25,5 +29,6 @@ export function openSite(code, key) {
     ) +
     `<div class="card chart"><div class="card-head"><h3>${t("ov.daily")}</h3></div>${chart}</div>` +
     (s.rows.length > 1 ? `<div class="table-wrap"><table><thead><tr><th>Format</th><th class="r">Station PKDW</th><th class="r">Training PKDW</th><th class="r">PKDW</th><th class="r">PKWT</th><th class="r">${t("col.missed")}</th></tr></thead><tbody>${s.rows.map(r => `<tr><td>${esc(r.format)}</td><td class="r">${fmt(r.spkdw)}</td><td class="r">${fmt(r.tpkdw)}</td><td class="r"><b>${fmt(r.pkdw)}</b></td><td class="r">${fmt(r.pkwt)}</td><td class="r">${r.missed}</td></tr>`).join("")}</tbody></table></div>` : "") +
+    reasonSection({site: s.code, cinema: s.cinema, date: key === YESTERDAY.slice(0, 7) ? YESTERDAY : monthEndOf(key), month: key, context: "other"}) +
     `<div class="card"><div class="card-head"><h3>${t("site.missedTitle")}</h3><span class="sub">${t("site.missedN", {n: missed.length})}</span></div>${missed.length ? `<div class="row">${missed.map(d => tag(esc(d), "red")).join("")}</div>` : `<span class="muted">${t("site.allFilled")}</span>`}</div>`});
 }

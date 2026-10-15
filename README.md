@@ -32,6 +32,7 @@ src/app/locales/id.js|en.js  kamus teks
 src/app/format.js          format angka & tanggal sesuai bahasa
 src/app/ui/                komponen: dom, components, charts, sheet
 src/app/features/          satu file per halaman + exports.js
+src/app/reasons.js         lapisan data catatan/reason (Google Sheet via Apps Script, cadangan di browser)
 ```
 Setelah mengubah teks, jalankan `node scripts/check-i18n.mjs` untuk memastikan kedua bahasa lengkap.
 - `core.js` berisi rumus parsing dan perhitungan. Dashboard dan script pembuat data memakai file yang sama, jadi angkanya pasti identik.
@@ -47,6 +48,19 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 - **Budget vs Actual:** menu Budget vs Actual menampilkan pemakaian DW s.d. kemarin dibanding budget per site (pro-rata minggu berjalan), lengkap dengan site over budget dan site tanpa budget. Klik **Salin ringkasan** untuk WA atau **Unduh Excel**.
 - **Setiap tanggal 1:** buka **PKDW 59 Site**, pilih bulan sebelumnya, lalu klik **Unduh Excel**.
 - Kalau sheet baru saja diisi dan ingin langsung terlihat, jalankan tugas terjadwal **"Update data Monitoring MH DW"** secara manual di halaman Scheduled tasks Claude (klik *Run now*), tunggu beberapa menit, lalu refresh.
+
+## Catatan & Reason
+Setiap site yang ter-flag (Productivity Alert), over budget, tanpa budget, atau belum isi H-1 punya tombol **+ Reason**. Klik tombolnya, isi jawaban CM (tanggal, konteks, kategori, reason, sumber, nama pencatat), lalu **Simpan reason**. Semua catatan per site bisa dilihat kembali di tombol yang sama, di detail site, dan di menu **Catatan & Reason**. Menu itu juga menampilkan site yang belum punya reason, ringkasan per kategori, riwayat lengkap yang bisa difilter dan dicari, serta **Unduh Excel**.
+
+Catatan disimpan di Google Sheet **"MH DW Notes"** lewat Apps Script, sehingga permanen, bisa dibuka dari perangkat mana pun, dan bisa dibaca langsung di Sheet. Sebelum Sheet disambungkan, catatan disimpan sementara di browser dan otomatis dipindahkan ke Sheet begitu tersambung.
+
+### Pasang sekali (±5 menit)
+1. Buat Google Sheet baru di akun Google kamu, beri nama **MH DW Notes**.
+2. Di Sheet itu buka **Extensions → Apps Script**. Hapus isi `Code.gs`, tempel seluruh isi `scripts/notes-apps-script.gs`, lalu klik **Save**.
+3. Klik **Deploy → New deployment**, klik ikon gerigi, lalu pilih **Web app**. Atur **Execute as: Me** dan **Who has access: Anyone**, lalu klik **Deploy**. Saat diminta, klik **Authorize access**, pilih akunmu, lalu **Advanced → Go to … (unsafe) → Allow**.
+4. Salin **Web app URL** (berakhiran `/exec`), lalu tempel ke `config.json` di kolom `notesEndpoint`. Bisa juga kirim URL-nya ke Claude untuk dipasangkan.
+
+Catatan keamanan: URL web app bisa dipakai siapa saja yang tahu alamatnya. Script hanya menerima kiriman yang menyertakan kunci `notesKey` (sama dengan `KEY` di script). Catatan tidak pernah benar-benar dihapus: tombol hapus hanya menandai baris sebagai `deleted` di Sheet, jadi riwayatnya tetap ada.
 
 ## Rumus
 | Istilah | Rumus |

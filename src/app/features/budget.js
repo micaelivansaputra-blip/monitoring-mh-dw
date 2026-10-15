@@ -7,6 +7,7 @@ import { groupedChart } from "../ui/charts.js";
 import { openSheet } from "../ui/sheet.js";
 import { budgetVsActual, store } from "../store.js";
 import { state } from "../state.js";
+import { reasonBtn, reasonSection } from "./reasons.js";
 
 const TONE = {over: "red", nobudget: "orange", early: "orange", near: "orange", ok: "green", none: ""};
 export const statusLabel = s => t("bstat." + s);
@@ -59,7 +60,8 @@ function openBudgetSite(r, code) {
       kpi({label: "Status", value: statusTag(x.status), sub: x.usage == null ? t("budget.noBudgetToDate") : t("budget.usageV", {v: fmt(x.usage * 100)})}),
     ) +
     `<div class="table-wrap"><table><thead><tr><th>${t("budget.week")}</th><th>${t("budget.dates")}</th>${A ? `<th class="r">${t("budget.admBudget")}</th><th class="r">${t("budget.admActual")}</th>` : ""}<th class="r">DW budget</th><th class="r">${t("budget.colToDate")}</th>${A ? `<th class="r">${t("budget.colFlex")}</th>` : ""}<th class="r">DW actual</th><th class="r">${t("budget.colVar")}</th></tr></thead>
-    <tbody>${x.periods.map(p => `<tr><td>W${p.week}</td><td>${p.label}${p.elapsed && p.elapsed < p.days ? " " + tag(t("budget.running", {e: p.elapsed, d: p.days})) : p.elapsed === 0 ? ` <span class="muted">${t("budget.notYet")}</span>` : ""}</td>${A ? `<td class="r">${fmt(p.admitsBudget)}</td><td class="r">${p.elapsed ? fmt(p.admitsActual) : "–"}</td>` : ""}<td class="r">${fmt(p.budget)}</td><td class="r">${fmt(p.budgetToDate)}</td>${A ? `<td class="r">${p.elapsed ? fmt(p.flex) : "–"}</td>` : ""}<td class="r"><b>${fmt(p.actual)}</b></td><td class="r">${p.elapsed ? diff(p.actual - p.budgetToDate) : "–"}</td></tr>`).join("")}</tbody></table></div>`});
+    <tbody>${x.periods.map(p => `<tr><td>W${p.week}</td><td>${p.label}${p.elapsed && p.elapsed < p.days ? " " + tag(t("budget.running", {e: p.elapsed, d: p.days})) : p.elapsed === 0 ? ` <span class="muted">${t("budget.notYet")}</span>` : ""}</td>${A ? `<td class="r">${fmt(p.admitsBudget)}</td><td class="r">${p.elapsed ? fmt(p.admitsActual) : "–"}</td>` : ""}<td class="r">${fmt(p.budget)}</td><td class="r">${fmt(p.budgetToDate)}</td>${A ? `<td class="r">${p.elapsed ? fmt(p.flex) : "–"}</td>` : ""}<td class="r"><b>${fmt(p.actual)}</b></td><td class="r">${p.elapsed ? diff(p.actual - p.budgetToDate) : "–"}</td></tr>`).join("")}</tbody></table></div>` +
+    reasonSection({site: x.code, cinema: x.cinema, date: r.cut, month: r.month, context: x.status === "over" ? "over" : x.status === "nobudget" || x.status === "early" ? "nobudget" : "other"})});
 }
 
 export default {
@@ -94,15 +96,16 @@ export default {
       <div class="card chart"><div class="card-head"><h2>${t("budget.chartTitle")}</h2>${legend([["var(--label-3)", "Budget"], ["var(--blue)", "Actual"], ["var(--orange)", t("budget.legendOver")], ...(A ? [["var(--label)", t("budget.legendFlex")]] : [])])}</div>${groupedChart(periods, {aria: t("budget.chartTitle")})}</div>
       <div class="row">${segmented("bf", flt, filters, "Filter")}</div>
       <div class="table-wrap"><table>
-        <thead><tr><th>${t("col.site")}</th>${A ? `<th class="r">${t("budget.admBudget")}</th><th class="r">${t("budget.admActual")}</th><th class="r">Δ admits</th>` : ""}<th class="r">${t("budget.colDwToDate")}</th>${A ? `<th class="r">${t("budget.colFlex")}</th>` : ""}<th class="r">DW actual</th><th class="r">${t("budget.colVar")}</th>${A ? `<th class="r">${t("budget.colVarFlex")}</th>` : ""}<th>${t("budget.colUsage")}</th><th class="r">${t("budget.colRemaining")}</th><th>Status</th></tr></thead>
+        <thead><tr><th>${t("col.site")}</th>${A ? `<th class="r">${t("budget.admBudget")}</th><th class="r">${t("budget.admActual")}</th><th class="r">Δ admits</th>` : ""}<th class="r">${t("budget.colDwToDate")}</th>${A ? `<th class="r">${t("budget.colFlex")}</th>` : ""}<th class="r">DW actual</th><th class="r">${t("budget.colVar")}</th>${A ? `<th class="r">${t("budget.colVarFlex")}</th>` : ""}<th>${t("budget.colUsage")}</th><th class="r">${t("budget.colRemaining")}</th><th>Status</th><th>Reason</th></tr></thead>
         <tbody>${list.map(x => `<tr class="click" data-bsite="${x.code}">
           <td class="site"><b>${esc(x.cinema)}</b>${x.admitsMissingDays ? tag(t("budget.admitsEmptyDays", {n: x.admitsMissingDays}), "orange") : ""}</td>${A ? `<td class="r">${fmt(x.admitsBudgetToDate)}</td><td class="r">${fmt(x.admitsActual)}</td><td class="r">${x.admitsVar == null ? "–" : `<span class="delta ${x.admitsVar >= 0 ? "down" : "up"}">${signed(x.admitsVar * 100)}%</span>`}</td>` : ""}
           <td class="r">${fmt(x.budgetToDate)}</td>${A ? `<td class="r">${fmt(x.flex)}</td>` : ""}<td class="r"><b>${fmt(x.actual)}</b></td>
           <td class="r">${diff(x.variance)}</td>${A ? `<td class="r">${diff(x.overFlex)}</td>` : ""}
           <td>${meter(x.usage)}</td>
           <td class="r" style="${x.remaining < 0 ? "color:var(--red-text);font-weight:600" : ""}">${fmt(x.remaining)}</td>
-          <td>${statusTag(x.status)}</td></tr>`).join("") || `<tr><td colspan="13" class="muted">${t("budget.emptyFilter")}</td></tr>`}</tbody>
-        <tfoot><tr><td>${t("budget.totalRow", {n: list.length})}</td>${(A ? ["admitsBudgetToDate", "admitsActual", null, "budgetToDate", "flex", "actual", "variance", "overFlex"] : ["budgetToDate", "actual", "variance"]).map(k => `<td class="r">${k ? sumOf(k) : ""}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a, x) => a + x.remaining, 0))}</td><td></td></tr></tfoot>
+          <td>${statusTag(x.status)}</td>
+          <td>${x.status !== "none" ? reasonBtn({site: x.code, cinema: x.cinema, date: r.cut, month: key, context: x.status === "over" ? "over" : x.status === "nobudget" || x.status === "early" ? "nobudget" : "other"}) : ""}</td></tr>`).join("") || `<tr><td colspan="14" class="muted">${t("budget.emptyFilter")}</td></tr>`}</tbody>
+        <tfoot><tr><td>${t("budget.totalRow", {n: list.length})}</td>${(A ? ["admitsBudgetToDate", "admitsActual", null, "budgetToDate", "flex", "actual", "variance", "overFlex"] : ["budgetToDate", "actual", "variance"]).map(k => `<td class="r">${k ? sumOf(k) : ""}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a, x) => a + x.remaining, 0))}</td><td></td><td></td></tr></tfoot>
       </table></div>
       <p class="foot">${t("budget.foot")}${A ? " " + t("budget.footFlex") : ""} ${t("budget.source", {s: esc(store.budget.source || "budget.json")})}</p>`;
 

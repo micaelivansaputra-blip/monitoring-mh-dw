@@ -6,6 +6,7 @@ import { header, kpi, kpis, notice, notes, segmented, btn, tag } from "../ui/com
 import { alertsOn, store } from "../store.js";
 import { state } from "../state.js";
 import { mailHTML, mailText, dwTxt } from "./alert-mail.js";
+import { reasonBtn } from "./reasons.js";
 
 export default {
   id: "alert",
@@ -40,14 +41,15 @@ export default {
       ) + `
       <div class="row">${segmented("amode", state.alertMode, [["flagged", t("alert.mFlagged", {n: F.length})], ["all", t("alert.mAll", {n: a.rows.length})]])}<span class="spacer"></span><button class="btn plain" id="copyText" type="button">${t("alert.copyWa")}</button></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Region</th><th>Cinema</th><th class="r">${t("alert.colWarn")}</th><th class="r">Productivity</th><th class="r">Target</th><th class="r">${t("alert.colDw")}</th><th class="r">Admits</th><th class="r">Total MH</th><th>Status</th></tr></thead>
+        <thead><tr><th>Region</th><th>Cinema</th><th class="r">${t("alert.colWarn")}</th><th class="r">Productivity</th><th class="r">Target</th><th class="r">${t("alert.colDw")}</th><th class="r">Admits</th><th class="r">Total MH</th><th>Status</th><th>Reason</th></tr></thead>
         <tbody>${list.map(r => `<tr class="click" data-site="${r.code}" data-month="${iso.slice(0, 7)}" data-tip="${esc(r.cinema)}|${r.warn ? t("alert.tipWarn", {list: r.warnDates.map(d => d.slice(8) + "/" + d.slice(5, 7)).join(", ")}) : t("alert.tipNone")}">
           <td>${esc(r.region)}</td><td class="site"><b>${esc(r.cinema)}</b>${r.admitsMissing ? tag(t("alert.admitsEmpty"), "orange") : ""}</td>
           <td class="r">${r.warn ? tag(t("alert.warnN", {n: r.warn}), r.warn >= 5 ? "red" : "orange") : `<span class="muted">0</span>`}</td>
           <td class="r" style="${r.prod != null && r.prod < r.target - a.tolerance ? "color:var(--orange-text);font-weight:600" : ""}">${f1(r.prod)}</td>
           <td class="r">${r.target}${r.hasTarget ? "" : "*"}</td><td class="r">${r.pkdw ? dwTxt(r) : `<span class="muted">0</span>`}</td>
           <td class="r">${r.admits == null ? "–" : fmt(r.admits)}</td><td class="r">${fmt(r.mh)}</td>
-          <td>${r.flag ? tag("Flagged", "red") : r.pkdw > 0 ? tag(t("alert.onTarget"), "green") : `<span class="muted">${t("alert.noDw")}</span>`}</td></tr>`).join("") || `<tr><td colspan="9" class="muted">${t("alert.noneFlagged")}</td></tr>`}</tbody>
+          <td>${r.flag ? tag("Flagged", "red") : r.pkdw > 0 ? tag(t("alert.onTarget"), "green") : `<span class="muted">${t("alert.noDw")}</span>`}</td>
+          <td>${r.pkdw > 0 ? reasonBtn({site: r.code, cinema: r.cinema, date: iso, context: "alert"}) : ""}</td></tr>`).join("") || `<tr><td colspan="10" class="muted">${t("alert.noneFlagged")}</td></tr>`}</tbody>
       </table></div>
       <h2 class="section-head">${t("alert.preview")}</h2>
       <p class="foot" style="margin-top:-8px">${t("alert.previewNote")}</p>

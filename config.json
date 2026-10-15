@@ -1,0 +1,5 @@
+{
+ "_note": "notesEndpoint = Web app URL dari Apps Script catatan (lihat scripts/notes-apps-script.gs). Kosong = catatan hanya tersimpan di browser ini.",
+ "notesEndpoint": "",
+ "notesKey": "mhdw-notes-2026"
+}

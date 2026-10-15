@@ -14,10 +14,13 @@ for (const f of [...files, "index.html"]) {
   for (const m of s.matchAll(/data-i18n(?:-aria|-title)?="([^"]+)"/g)) used.add(m[1]);
 }
 // Keys built at runtime from fixed lists.
-["gMonitor", "gReports", "overview", "h1", "alert", "sites", "budget", "trend", "map", "more"].forEach(k => used.add("nav." + k));
+["gMonitor", "gReports", "overview", "h1", "alert", "reasons", "sites", "budget", "trend", "map", "more"].forEach(k => used.add("nav." + k));
 ["overview", "h1", "alert", "sites", "more"].forEach(k => used.add("tab." + k));
 ["budget.flexOver", "budget.flexUnder"].forEach(k => used.add(k));
 ["over", "nobudget", "early", "near", "ok", "none"].forEach(k => used.add("bstat." + k));
+["alert", "over", "nobudget", "h1", "other"].forEach(k => used.add("reason.ctx." + k));
+["admits", "event", "sick", "training", "ops", "input", "noreply", "other"].forEach(k => used.add("reason.cat." + k));
+["sheet", "local", "pending"].forEach(k => used.add("reason.saved." + k));
 
 const keys = d => new Set(Object.keys(d).filter(k => k !== "_cal"));
 const problems = [];

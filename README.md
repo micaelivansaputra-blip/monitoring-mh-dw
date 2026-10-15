@@ -46,6 +46,8 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 - **Setiap pagi:** buka link, lalu masuk ke **Cek Pengisian H-1**. Salin teks reminder dan kirim ke grup.
 - **Productivity Alert:** buka menu Productivity Alert, klik **Salin email**, lalu tempel di Outlook/Gmail untuk RM & cinema. Formatnya sudah tabel lengkap. Klik **Unduh Excel** untuk lampiran `DailyWorker_Productivity_<tanggal>.xlsx` (format sama dengan file referensi: sheet *Flagged* dan *All cinemas*; kolom HitDay/HitYTD dikosongkan karena tidak ada di sheet Man Hour).
 - **Budget vs Actual:** menu Budget vs Actual menampilkan pemakaian DW s.d. kemarin dibanding budget per site (pro-rata minggu berjalan), lengkap dengan site over budget dan site tanpa budget. Klik **Salin ringkasan** untuk WA atau **Unduh Excel**.
+- **Harian per Site:** matriks setiap site × tanggal. Nyalakan/matikan metrik yang mau dilihat (MH DW, Station/Training PKDW, MH PKWT, Total MH, Admits, Productivity, % DW). Bisa difilter (pakai DW, prod di bawah target, ada hari belum isi), per region, diurutkan, dan diunduh ke Excel sesuai tampilan. Pilihan metrik diingat browser.
+- **Pencarian:** tekan **Ctrl + K** (Mac ⌘K) atau **/**, atau ikon 🔍 di HP, untuk mencari site, halaman, bulan, tanggal, catatan reason, dan unduhan.
 - **Setiap tanggal 1:** buka **PKDW 59 Site**, pilih bulan sebelumnya, lalu klik **Unduh Excel**.
 - Kalau sheet baru saja diisi dan ingin langsung terlihat, jalankan tugas terjadwal **"Update data Monitoring MH DW"** secara manual di halaman Scheduled tasks Claude (klik *Run now*), tunggu beberapa menit, lalu refresh.
 
@@ -73,7 +75,7 @@ Catatan keamanan: URL web app bisa dipakai siapa saja yang tahu alamatnya. Scrip
 | Productivity | Admits ÷ Total MH per site per hari (Admits kosong = 0) |
 | Productivity Alert | site ter-flag kalau PKDW > 0 **dan** productivity < target − 1; warnings minggu ini = jumlah hari seperti itu dalam minggu fiskal berjalan (Rabu–Selasa) s.d. tanggal laporan |
 
-Budget DW per site per minggu (Sep–Des 2026) ada di `budget.json`, diambil dari **payroll.xlsx sheet PROD 14** (budget): `mh` = budget MH DW, `admits` = forecast admits, `prod` = target productivity, `fth` = jam karyawan tetap (FT × 40 × hari/7). Rumus budget DW di file itu: `max(0, admits ÷ (prod × 90%) − fth)`. Dashboard menjalankan rumus yang sama dengan **admits actual** untuk mendapatkan **DW wajar**.
+Budget DW per site per minggu (Sep–Des 2026) ada di `budget.json`, diambil dari **payroll.xlsx sheet PROD 14** (budget): `mh` = budget MH DW, `admits` = forecast admits, `prod` = target productivity, `fth` = jam karyawan tetap (FT × 40 × hari/7). Rumus budget DW di file itu: `max(0, admits ÷ (prod × 90%) − fth)`.
 
 Target productivity (12 atau 14) dan region setiap site ada di `targets.json`, disalin dari laporan DailyWorker_Productivity. Untuk menambah site baru (mis. 72-Paragon Square Mall), tambahkan entri dengan kode site-nya.
 

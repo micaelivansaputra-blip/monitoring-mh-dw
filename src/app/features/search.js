@@ -9,6 +9,7 @@ import { reasons } from "../reasons.js";
 import { ACTIONS } from "./exports.js";
 import { openSite } from "./site-detail.js";
 import { openReason, exportReasons } from "./reasons.js";
+import { exportDaily } from "./daily.js";
 
 const LS_RECENT = "mhdw.search.recent";
 const LANGS = Object.values(_dicts);
@@ -21,6 +22,7 @@ const PAGES = [
   ["alert", ICON.alert, "productivity alert email warning flag target"],
   ["reasons", ICON.note, "reason catatan note cm history riwayat"],
   ["sites", ICON.sites, "pkdw 59 site laporan bulanan report excel"],
+  ["daily", ICON.table, "harian daily per hari matrix admits productivity prod pkwt"],
   ["budget", ICON.budget, "budget actual payroll cinthia over"],
   ["trend", ICON.trend, "tren trend bulanan monthly"],
   ["map", ICON.map, "peta map heatmap pengisian kalender calendar"],
@@ -31,6 +33,7 @@ const DOWNLOADS = [
   ["alert-xlsx", "search.dl.alert", "excel productivity alert dailyworker"],
   ["budget-xlsx", "search.dl.budget", "excel budget actual"],
   ["trend-xlsx", "search.dl.trend", "excel tren trend"],
+  ["daily-xlsx", "search.dl.daily", "excel harian daily admits productivity"],
   ["reasons-xlsx", "search.dl.reasons", "excel reason catatan"],
 ];
 
@@ -100,7 +103,7 @@ function index(app) {
     title: monthName(k), sub: t("search.monthSub", {v: t("nav." + (MONTH_VIEWS.includes(state.view) ? state.view : "sites"))}),
     run: () => app.setMonth(k, MONTH_VIEWS.includes(state.view) ? state.view : "sites")}));
   DOWNLOADS.forEach(([act, label, words]) => items.push({group: "downloads", hay: norm(`${both(label)} ${both("common.downloadExcel")} download unduh ${words}`), icon: ICON.down,
-    title: t(label), sub: ["xlsx", "csv"].includes(act) && key ? monthName(key) : "", run: () => (act === "reasons-xlsx" ? exportReasons() : ACTIONS[act]())}));
+    title: t(label), sub: ["xlsx", "csv", "daily-xlsx"].includes(act) && key ? monthName(key) : "", run: () => (act === "reasons-xlsx" ? exportReasons() : act === "daily-xlsx" ? exportDaily() : ACTIONS[act]())}));
   reasons.all.forEach(n => items.push({group: "notes", hay: norm(`${n.site} ${n.cinema} ${n.reason} ${n.category} ${n.context} ${n.source} ${n.by}`), icon: ICON.note,
     title: `${esc(n.cinema)} · ${n.date ? dateShort(n.date) : "–"}`, sub: esc(n.reason.length > 110 ? n.reason.slice(0, 110) + "…" : n.reason),
     run: () => openReason({site: n.site, cinema: n.cinema, date: n.date, context: "other"}, app)}));

@@ -14,18 +14,19 @@ import alert from "./features/alert.js";
 import sites from "./features/sites.js";
 import budget from "./features/budget.js";
 import trend from "./features/trend.js";
+import daily from "./features/daily.js";
 import map from "./features/map.js";
 import more from "./features/more.js";
 import reasonsView, { openReason, exportReasons, needCount } from "./features/reasons.js";
 import { loadReasons, onReasons } from "./reasons.js";
 import { openSearch, wireSearch, shortcutLabel } from "./features/search.js";
 
-const FEATURES = {overview, h1, alert, reasons: reasonsView, sites, budget, trend, map, more};
+const FEATURES = {overview, h1, alert, reasons: reasonsView, sites, daily, budget, trend, map, more};
 
 // Navigation model — one source for sidebar and tab bar.
 const NAV = [
   {group: "nav.gMonitor", items: [["overview", ICON.grid], ["h1", ICON.checklist, "h1"], ["alert", ICON.alert, "alert"], ["reasons", ICON.note, "reasons"]]},
-  {group: "nav.gReports", items: [["sites", ICON.sites], ["budget", ICON.budget], ["trend", ICON.trend], ["map", ICON.map]]},
+  {group: "nav.gReports", items: [["sites", ICON.sites], ["daily", ICON.table], ["budget", ICON.budget], ["trend", ICON.trend], ["map", ICON.map]]},
 ];
 const TABS = [["overview", ICON.grid, "tab.overview"], ["h1", ICON.checklist, "tab.h1", "h1"], ["alert", ICON.alert, "tab.alert", "alert"], ["sites", ICON.sites, "tab.sites"], ["more", ICON.more, "tab.more"]];
 const badges = {h1: 0, alert: 0, reasons: 0};
@@ -48,7 +49,7 @@ const app = {
 /* ---------- Shell ---------- */
 function renderChrome() {
   const badge = k => k && badges[k] ? `<span class="badge">${badges[k]}</span>` : "";
-  const cur = v => (v === state.view || (state.view !== "more" && v === "more" && ["budget", "trend", "map", "reasons"].includes(state.view))) ? ' aria-current="page"' : "";
+  const cur = v => (v === state.view || (state.view !== "more" && v === "more" && ["daily", "budget", "trend", "map", "reasons"].includes(state.view))) ? ' aria-current="page"' : "";
   $("sideNav").innerHTML = NAV.map(g => `<div class="side-label">${t(g.group)}</div>` +
     g.items.map(([v, ic, b]) => `<button class="nav-item" type="button" data-go="${v}"${v === state.view ? ' aria-current="page"' : ""}>${ic}<span>${t("nav." + v)}</span>${badge(b)}</button>`).join("")).join("");
   $("tabbar").innerHTML = TABS.map(([v, ic, l, b]) => `<button type="button" data-go="${v}"${cur(v)}>${ic}${t(l)}${badge(b)}</button>`).join("");

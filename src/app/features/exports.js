@@ -18,7 +18,7 @@ function save(filename, data) {
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   hud(t("toast.downloading", {f: filename}));
 }
-function workbook() {
+export function workbook() {
   if (typeof XLSX === "undefined") { hud(t("toast.xlsxMissing")); return null; }
   const wb = XLSX.utils.book_new();
   const add = (name, aoa, cols) => { const ws = XLSX.utils.aoa_to_sheet(aoa); if (cols) ws["!cols"] = cols.map(w => ({wch: w})); XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31)); };
@@ -91,8 +91,8 @@ function exportBudget() {
   const key = state.month, r = bvaCurrent(); if (!r) return;
   const W = workbook(); if (!W) return;
   const rows = r.rows.slice().sort((a, b) => b.variance - a.variance);
-  const head = [t("x.code"), t("col.site"), t("x.bMonth"), t("x.bToDate"), t("x.bActual"), t("budget.colVar"), t("budget.colUsage"), t("budget.colRemaining"), "Status", t("x.bAdmB"), t("budget.admActual"), "Δ Admits %", t("x.bFlex"), t("budget.colVarFlex")];
-  const adm = x => r.hasAdmits ? [+(x.admitsBudgetToDate || 0).toFixed(0), x.admitsActual || 0, x.admitsVar == null ? "" : r1(x.admitsVar * 100), r1(x.flex), r1(x.overFlex)] : [];
+  const head = [t("x.code"), t("col.site"), t("x.bMonth"), t("x.bToDate"), t("x.bActual"), t("budget.colVar"), t("budget.colUsage"), t("budget.colRemaining"), "Status", t("x.bAdmB"), t("budget.admActual"), "Δ Admits %"];
+  const adm = x => r.hasAdmits ? [+(x.admitsBudgetToDate || 0).toFixed(0), x.admitsActual || 0, x.admitsVar == null ? "" : r1(x.admitsVar * 100)] : [];
   W.add("Budget vs Actual", [[t("x.bTitle", {month: monthName(key), cut: r.cut})], [t("x.bSub", {now: now()})], [], head,
     ...rows.map(x => [+x.code, x.cinema, r1(x.budgetMonth), r1(x.budgetToDate), x.actual, r1(x.variance), x.usage == null ? "" : r1(x.usage * 100), r1(x.remaining), statusLabel(x.status), ...adm(x)]),
     ["", "TOTAL", r1(r.tot.budgetMonth), r1(r.tot.budgetToDate), r.tot.actual, r1(r.tot.variance), r.tot.usage == null ? "" : r1(r.tot.usage * 100), r1(r.tot.remaining), "", ...adm(r.tot)]],

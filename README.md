@@ -57,7 +57,7 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 | Sudah isi | kolom **Station PKWT** pada tanggal itu terisi (angka 0 juga dihitung) |
 | Site | satu kode cinema; baris VIP/Junior digabung ke site-nya |
 | Productivity | Admits ÷ Total MH per site per hari (Admits kosong = 0) |
-| Productivity Alert | site ter-flag kalau PKDW > 0 **dan** productivity < target − 1; warnings minggu ini = jumlah hari seperti itu dalam 7 hari terakhir |
+| Productivity Alert | site ter-flag kalau PKDW > 0 **dan** productivity < target − 1; warnings minggu ini = jumlah hari seperti itu dalam minggu fiskal berjalan (Rabu–Selasa) s.d. tanggal laporan |
 
 Budget DW per site per minggu (Sep–Des 2026) ada di `budget.json`, diambil dari **payroll.xlsx sheet PROD 14** (budget): `mh` = budget MH DW, `admits` = forecast admits, `prod` = target productivity, `fth` = jam karyawan tetap (FT × 40 × hari/7). Rumus budget DW di file itu: `max(0, admits ÷ (prod × 90%) − fth)`. Dashboard menjalankan rumus yang sama dengan **admits actual** untuk mendapatkan **DW wajar**.
 

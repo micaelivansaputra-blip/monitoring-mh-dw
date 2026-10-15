@@ -175,7 +175,10 @@
     if(!today) return null;
     const targetOf = code => (siteCfg[code] && siteCfg[code].target) || cfg.defaultTarget || 14;
     const warnOn = (s, code) => !!s && s.pkdw > 0 && s.prod != null && s.prod < targetOf(code) - tol;
-    const windowIsos = Array.from({length:win}, (_,k) => isoAdd(dateIso, k-win+1));
+    // cfg.weekStartDay (0=Sun … 3=Wed): count from the start of the running fiscal week up to dateIso; otherwise a rolling window.
+    const [yy,mm,dd] = dateIso.split("-").map(Number), dow = new Date(Date.UTC(yy, mm-1, dd)).getUTCDay();
+    const span = cfg.weekStartDay != null ? ((dow - cfg.weekStartDay + 7) % 7) + 1 : win;
+    const windowIsos = Array.from({length:span}, (_,k) => isoAdd(dateIso, k-span+1));
     const rows = [...today.values()].map(s => {
       const c = siteCfg[s.code] || {};
       const warnDates = windowIsos.filter(iso => { const d = dayFor(iso); return d && warnOn(d.get(s.code), s.code); });

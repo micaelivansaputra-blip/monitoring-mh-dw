@@ -1,7 +1,8 @@
 {
- "_note": "Target productivity (Admits / Total MH) dan region per site, dari DailyWorker_Productivity.xlsx. Ubah di sini kalau ada site baru atau perubahan target.",
+ "_note": "Target productivity (Admits / Total MH) dan region per site, dari DailyWorker_Productivity.xlsx. Ubah di sini kalau ada site baru atau perubahan target. weekStartDay 3 = minggu fiskal Rabu–Selasa (warning minggu ini dihitung dari Rabu s.d. tanggal laporan).",
  "tolerance": 1,
  "windowDays": 7,
+ "weekStartDay": 3,
  "defaultTarget": 14,
  "sites": {
   "2": {

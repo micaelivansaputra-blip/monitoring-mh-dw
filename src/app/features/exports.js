@@ -77,10 +77,13 @@ function exportTrend() {
 function exportAlert() {
   const a = alertsOn(state.alertDate); if (!a) return;
   const W = workbook(); if (!W) return;
-  const head = ["REGION", "CinemaSite", "WeekWarnings", "Productivity", "Target", "DW", "StationPKDW", "TrainingPKDW", "Admits", "ManHours", "WarningDates"];
-  const row = r => [r.region, r.cinema, r.warn, r.prod == null ? "" : +r.prod.toFixed(2), r.target, r.pkdw, r.spkdw, r.tpkdw, r.admits == null ? "" : r.admits, r.mh, r.warnDates.join(", ")];
-  W.add("Flagged", [head, ...a.flagged.map(row)], [12, 32, 13, 12, 8, 6, 12, 13, 9, 10, 40]);
-  W.add("All cinemas", [[...head, "Flag"], ...a.rows.map(r => [...row(r), r.flag])], [12, 32, 13, 12, 8, 6, 12, 13, 9, 10, 40, 7]);
+  // Same layout as the reference file DailyWorker_Productivity.xlsx (sheets "Flagged" + "All cinemas").
+  // HitDay / HitYTD (concession hit rate) are not in the Man Hour sheet, so those columns stay empty.
+  const head = ["REGION", "CinemaSite", "WeekWarnings", "Productivity", "Target", "DW", "StationPKDW", "TrainingPKDW", "Admits", "ManHours", "HitDay", "HitYTD"];
+  const row = r => [r.region, r.cinema, r.warn, r.prod == null ? 0 : r.prod, r.target, r.pkdw, r.spkdw, r.tpkdw, r.admits || 0, r.mh, "", ""];
+  const cols = [12, 32, 13, 12, 8, 6, 12, 13, 9, 10, 8, 8];
+  W.add("Flagged", [head, ...a.flagged.map(row)], cols);
+  W.add("All cinemas", [[...head, "Flag"], ...a.rows.map(r => [...row(r), r.flag])], [...cols, 7]);
   W.write(`DailyWorker_Productivity_${a.date}.xlsx`);
 }
 

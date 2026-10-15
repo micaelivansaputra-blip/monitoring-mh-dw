@@ -43,7 +43,7 @@ Di kanan atas dashboard tertulis **"Data per …"**, yaitu waktu terakhir data d
 
 ## Pemakaian
 - **Setiap pagi:** buka link, lalu masuk ke **Cek Pengisian H-1**. Salin teks reminder dan kirim ke grup.
-- **Productivity Alert:** buka menu Productivity Alert, klik **Salin email**, lalu tempel di Outlook/Gmail untuk RM & cinema. Formatnya sudah tabel lengkap.
+- **Productivity Alert:** buka menu Productivity Alert, klik **Salin email**, lalu tempel di Outlook/Gmail untuk RM & cinema. Formatnya sudah tabel lengkap. Klik **Unduh Excel** untuk lampiran `DailyWorker_Productivity_<tanggal>.xlsx` (format sama dengan file referensi: sheet *Flagged* dan *All cinemas*; kolom HitDay/HitYTD dikosongkan karena tidak ada di sheet Man Hour).
 - **Budget vs Actual:** menu Budget vs Actual menampilkan pemakaian DW s.d. kemarin dibanding budget per site (pro-rata minggu berjalan), lengkap dengan site over budget dan site tanpa budget. Klik **Salin ringkasan** untuk WA atau **Unduh Excel**.
 - **Setiap tanggal 1:** buka **PKDW 59 Site**, pilih bulan sebelumnya, lalu klik **Unduh Excel**.
 - Kalau sheet baru saja diisi dan ingin langsung terlihat, jalankan tugas terjadwal **"Update data Monitoring MH DW"** secara manual di halaman Scheduled tasks Claude (klik *Run now*), tunggu beberapa menit, lalu refresh.

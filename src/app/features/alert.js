@@ -31,7 +31,7 @@ export default {
     if (missAdm.length) caveats.push([t("alert.admits", {n: missAdm.length}), t("alert.admitsSub", {list: missAdm.map(r => esc(r.cinema)).join(", ")})]);
 
     c.innerHTML = header(title, `${dateLong(iso)} · ${t("alert.sub", {tol: a.tolerance})}`,
-        tools + btn("Excel", {act: "alert-xlsx", icon: ICON.down}) + btn(t("alert.copyMail"), {id: "copyMail", filled: true, icon: ICON.copy})) +
+        tools + btn(t("common.downloadExcel"), {act: "alert-xlsx", icon: ICON.down}) + btn(t("alert.copyMail"), {id: "copyMail", filled: true, icon: ICON.copy})) +
       notes(caveats) +
       kpis(
         kpi({label: t("alert.flagged"), icon: ICON.warn, tint: "orange", tone: F.length ? "warn" : "good", value: F.length, unit: t("alert.flaggedUnit", {n: dwUsers}), sub: t("alert.flaggedSub", {n: a.rows.length})}),

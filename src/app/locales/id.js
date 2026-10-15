@@ -206,4 +206,14 @@ export default {
   "reason.cat.admits": "Admits di atas perkiraan", "reason.cat.event": "Event / film besar", "reason.cat.sick": "Staff sakit / izin / cuti",
   "reason.cat.training": "Training staff baru", "reason.cat.ops": "Kebutuhan operasional lain", "reason.cat.input": "Salah input data",
   "reason.cat.noreply": "Belum ada jawaban", "reason.cat.other": "Lainnya",
+  // Search
+  "search.btn": "Cari", "search.title": "Cari", "search.ph": "Cari site, halaman, bulan, tanggal, atau reason…",
+  "search.kNav": "pilih", "search.kOpen": "buka", "search.hint": "Coba: 34, Renon, region 3, 12/10, oktober, excel",
+  "search.none": "Tidak ada hasil untuk “{q}”", "search.noneSub": "Coba kode site, nama mall, region, atau tanggal (mis. 12/10).",
+  "search.g.recent": "Terakhir dibuka", "search.g.sites": "Site", "search.g.pages": "Halaman", "search.g.months": "Bulan",
+  "search.g.notes": "Catatan & Reason", "search.g.downloads": "Unduh", "search.g.dates": "Tanggal",
+  "search.chipH1": "Belum isi H-1", "search.chipAlert": "Ter-flag",
+  "search.monthSub": "Buka di {v}", "search.dateH1": "Cek pengisian H-1 tanggal ini", "search.dateAlert": "Productivity Alert tanggal ini",
+  "search.dl.month": "Excel PKDW 59 Site", "search.dl.csv": "CSV PKDW 59 Site", "search.dl.alert": "Excel Productivity Alert",
+  "search.dl.budget": "Excel Budget vs Actual", "search.dl.trend": "Excel Tren Bulanan", "search.dl.reasons": "Excel Catatan & Reason",
 };

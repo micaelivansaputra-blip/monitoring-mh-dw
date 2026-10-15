@@ -18,6 +18,7 @@ import map from "./features/map.js";
 import more from "./features/more.js";
 import reasonsView, { openReason, exportReasons, needCount } from "./features/reasons.js";
 import { loadReasons, onReasons } from "./reasons.js";
+import { openSearch, wireSearch, shortcutLabel } from "./features/search.js";
 
 const FEATURES = {overview, h1, alert, reasons: reasonsView, sites, budget, trend, map, more};
 
@@ -37,6 +38,11 @@ const app = {
     renderChrome(); render();
   },
   rerender: () => render(),
+  setMonth(key, view) {
+    if (!store.has(key)) return;
+    state.month = key; state.budgetCut = null; $("monthSel").value = key;
+    if (view && view !== state.view) app.go(view); else { window.scrollTo(0, 0); render(); }
+  },
 };
 
 /* ---------- Shell ---------- */
@@ -96,6 +102,7 @@ function wireGlobal() {
     if (el.dataset.go) return app.go(el.dataset.go);
     if (el.dataset.lang) return setLang(el.dataset.lang);
     if (el.dataset.thm) { state.theme = el.dataset.thm; persist(); applyTheme(); renderChrome(); if (state.view === "more") render(); return; }
+    if (el.dataset.act === "search") return openSearch(app);
     if (el.dataset.act === "reasons-xlsx") return exportReasons();
     if (el.dataset.act && ACTIONS[el.dataset.act]) return ACTIONS[el.dataset.act]();
     if (el.dataset.site) {
@@ -136,4 +143,6 @@ translateDom();
 renderChrome();
 initTooltip();
 wireGlobal();
+wireSearch(app);
+$("sideKbd").textContent = shortcutLabel();
 boot();

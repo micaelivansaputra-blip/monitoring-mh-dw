@@ -206,4 +206,14 @@ export default {
   "reason.cat.admits": "Admits above forecast", "reason.cat.event": "Event / big release", "reason.cat.sick": "Staff sick / leave",
   "reason.cat.training": "New staff training", "reason.cat.ops": "Other operational need", "reason.cat.input": "Data entry error",
   "reason.cat.noreply": "No answer yet", "reason.cat.other": "Other",
+  // Search
+  "search.btn": "Search", "search.title": "Search", "search.ph": "Search sites, pages, months, dates or reasons…",
+  "search.kNav": "select", "search.kOpen": "open", "search.hint": "Try: 34, Renon, region 3, 12/10, october, excel",
+  "search.none": "No results for “{q}”", "search.noneSub": "Try a site code, mall name, region or a date (e.g. 12/10).",
+  "search.g.recent": "Recently opened", "search.g.sites": "Sites", "search.g.pages": "Pages", "search.g.months": "Months",
+  "search.g.notes": "Notes & Reasons", "search.g.downloads": "Downloads", "search.g.dates": "Dates",
+  "search.chipH1": "H-1 missing", "search.chipAlert": "Flagged",
+  "search.monthSub": "Open in {v}", "search.dateH1": "Check H-1 entries for this date", "search.dateAlert": "Productivity Alert for this date",
+  "search.dl.month": "PKDW 59 Sites Excel", "search.dl.csv": "PKDW 59 Sites CSV", "search.dl.alert": "Productivity Alert Excel",
+  "search.dl.budget": "Budget vs Actual Excel", "search.dl.trend": "Monthly Trend Excel", "search.dl.reasons": "Notes & Reasons Excel",
 };

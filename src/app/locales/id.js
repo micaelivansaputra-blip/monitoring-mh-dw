@@ -226,4 +226,7 @@ export default {
   "daily.noDays": "Belum ada tanggal yang lewat di bulan ini.", "daily.empty": "Tidak ada site yang cocok dengan filter.",
   "daily.foot": "MTD: MH & Admits dijumlah; Productivity = total Admits ÷ total MH; % DW = PKDW ÷ Total MH. Angka <b style=\"color:var(--red-text)\">merah</b> = productivity di bawah target − 1 pada hari yang memakai DW (aturan Productivity Alert). Sel bergaris = site belum isi hari itu; · = 0.",
   "daily.xTitle": "MH DW harian per site · {month}",
+  "budget.mailTitle": "Email FYI ke Kak Cinthia", "budget.copyMail": "Salin email", "budget.copySubject": "Salin subjek",
+  "budget.mailNote": "Isi email & tabel per region ikut tanggal \"s.d.\" di atas dan ter-update otomatis tiap data diperbarui. Klik Salin email lalu tempel di Outlook/Gmail (tabel ikut tersalin).",
+  "budget.mailCopied": "Email disalin, tinggal tempel", "budget.subjectCopied": "Subjek disalin",
 };

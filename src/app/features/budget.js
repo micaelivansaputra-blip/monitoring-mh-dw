@@ -1,7 +1,8 @@
 // Budget vs Actual — DW man-hours to date against the weekly budget (budget.json).
 import { t } from "../i18n.js";
 import { fmt, signed, monthName, monthOnly, monthEnd, dateLong, YESTERDAY } from "../format.js";
-import { esc, ICON, on, copyText } from "../ui/dom.js";
+import { esc, ICON, on, copyText, copyRich } from "../ui/dom.js";
+import * as Mail from "./budget-mail.js";
 import { header, kpi, kpis, notice, segmented, btn, tag, legend } from "../ui/components.js";
 import { groupedChart } from "../ui/charts.js";
 import { openSheet } from "../ui/sheet.js";
@@ -105,11 +106,17 @@ export default {
           <td>${x.status !== "none" ? reasonBtn({site: x.code, cinema: x.cinema, date: r.cut, month: key, context: x.status === "over" ? "over" : x.status === "nobudget" || x.status === "early" ? "nobudget" : "other"}) : ""}</td></tr>`).join("") || `<tr><td colspan="12" class="muted">${t("budget.emptyFilter")}</td></tr>`}</tbody>
         <tfoot><tr><td>${t("budget.totalRow", {n: list.length})}</td>${(A ? ["admitsBudgetToDate", "admitsActual", null, "budgetToDate", "actual", "variance"] : ["budgetToDate", "actual", "variance"]).map(k => `<td class="r">${k ? sumOf(k) : ""}</td>`).join("")}<td></td><td class="r">${fmt(list.reduce((a, x) => a + x.remaining, 0))}</td><td></td><td></td></tr></tfoot>
       </table></div>
-      <p class="foot">${t("budget.foot")} ${t("budget.source", {s: esc(store.budget.source || "budget.json")})}</p>`;
+      <p class="foot">${t("budget.foot")} ${t("budget.source", {s: esc(store.budget.source || "budget.json")})}</p>
+      <div class="row" style="margin-top:var(--s4)"><h2 class="section-head" style="margin:0">${t("budget.mailTitle")}</h2><span class="spacer"></span>
+        ${btn(t("budget.copySubject"), {id: "bmSubj", icon: ICON.copy})}${btn(t("budget.copyMail"), {id: "bmCopy", filled: true, icon: ICON.copy})}</div>
+      <p class="foot" style="margin-top:-8px">${t("budget.mailNote")}</p>
+      <div class="mail-paper"><p style="font-family:Arial;font-size:13px;color:#555;margin:0 0 12px"><b>Subject:</b> ${esc(Mail.subject(r))}</p>${Mail.mailHTML(r)}</div>`;
 
     wireCut();
     on(c, "[data-bf]", "click", b => { state.budgetFilter = b.dataset.bf; app.rerender(); });
     on(c, "[data-bsite]", "click", row => openBudgetSite(r, row.dataset.bsite));
     on(c, "#bvCopy", "click", () => copyText(summaryText(r), t("budget.copied")));
+    on(c, "#bmCopy", "click", () => copyRich(Mail.mailHTML(r), Mail.mailText(r), t("budget.mailCopied")));
+    on(c, "#bmSubj", "click", () => copyText(Mail.subject(r), t("budget.subjectCopied")));
   },
 };

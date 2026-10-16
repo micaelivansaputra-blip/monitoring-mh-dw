@@ -226,4 +226,7 @@ export default {
   "daily.noDays": "No past dates in this month yet.", "daily.empty": "No sites match the filter.",
   "daily.foot": "MTD: MH & Admits are summed; Productivity = total Admits ÷ total MH; % DW = PKDW ÷ Total MH. <b style=\"color:var(--red-text)\">Red</b> = productivity below target − 1 on a day with DW (Productivity Alert rule). Striped cell = site did not fill in that day; · = 0.",
   "daily.xTitle": "Daily DW MH per site · {month}",
+  "budget.mailTitle": "FYI email to Kak Cinthia", "budget.copyMail": "Copy email", "budget.copySubject": "Copy subject",
+  "budget.mailNote": "The email and region table follow the \"up to\" date above and refresh with every data update. The email itself is in Bahasa Indonesia. Click Copy email and paste into Outlook/Gmail (the table is included).",
+  "budget.mailCopied": "Email copied, ready to paste", "budget.subjectCopied": "Subject copied",
 };

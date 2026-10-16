@@ -294,6 +294,11 @@
    "region": "REGION 1",
    "target": 14,
    "name": "71-K-SQUARE BATAM"
+  },
+  "72": {
+   "region": "REGION 6",
+   "target": 14,
+   "name": "72-PARAGON SQUARE MALL"
   }
  }
 }

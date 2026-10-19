@@ -233,4 +233,5 @@ export default {
   "alert.rangeInfo": "{n} days · one row per site per day", "alert.missingDates": "{n} dates not in the data yet",
   "alert.flaggedSubRange": "{n} cases (site × day) over {d} days", "alert.heavyRange": "sites flagged ≥ 5 days in their fiscal week",
   "alert.noneFlaggedRange": "No sites flagged in this date range.",
+  "alert.copySubject": "Copy subject", "alert.subjectCopied": "Subject copied",
 };

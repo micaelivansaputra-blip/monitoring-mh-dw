@@ -233,4 +233,5 @@ export default {
   "alert.rangeInfo": "{n} hari · satu baris per site per hari", "alert.missingDates": "{n} tanggal belum ada di data",
   "alert.flaggedSubRange": "{n} kasus (site × hari) dalam {d} hari", "alert.heavyRange": "site dengan ≥ 5 hari ter-flag di minggu fiskalnya",
   "alert.noneFlaggedRange": "Tidak ada site yang ter-flag di rentang tanggal ini.",
+  "alert.copySubject": "Salin subjek", "alert.subjectCopied": "Subjek disalin",
 };

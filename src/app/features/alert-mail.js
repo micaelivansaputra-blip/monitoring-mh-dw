@@ -39,3 +39,15 @@ export function mailText(a) {
   const lines = a.flagged.map((r, i) => `${i + 1}. ${a.multi ? dShortEN(r.date) + " | " : ""}${r.region} | ${r.cinema} | ${r.warn}x this week | Prod ${f1(r.prod)} vs target ${r.target} | DW ${dwTxt(r)} hrs | Admits ${fInt(r.admits)} | Total MH ${fInt(r.mh)}`);
   return `Dear Regional Managers and Cinema teams,\n\nThe cinemas below used daily-worker man-hours on ${whenTxt(a)} while their productivity fell short of target (beyond the ±${a.tolerance} tolerance). Please review the daily-worker usage against the productivity outcome for these sites.\n\n${lines.join("\n")}\n\n${foot(a).replace(/<\/?b>/g, "")}`;
 }
+
+/** Subject line, e.g. "Reminder: daily-worker usage vs productivity - 15 Oct 2026" or "... - 16-18 Oct 2026". */
+export function mailSubject(a) {
+  const p = iso => { const d = asD(iso); return {d: d.getDate(), m: EN_MON[d.getMonth()], y: d.getFullYear()}; };
+  const t = p(a.date);
+  let when = `${t.d} ${t.m} ${t.y}`;
+  if (a.multi) {
+    const f = p(a.from);
+    when = f.y !== t.y ? `${f.d} ${f.m} ${f.y} - ${when}` : f.m !== t.m ? `${f.d} ${f.m} - ${when}` : `${f.d}-${when}`;
+  }
+  return `Reminder: daily-worker usage vs productivity - ${when}`;
+}

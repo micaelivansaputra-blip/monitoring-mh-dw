@@ -5,7 +5,7 @@ import { esc, ICON, on, hud, copyRich, copyText } from "../ui/dom.js";
 import { header, kpi, kpis, notice, notes, segmented, btn, tag } from "../ui/components.js";
 import { alertsRange, store } from "../store.js";
 import { state } from "../state.js";
-import { mailHTML, mailText, dwTxt } from "./alert-mail.js";
+import { mailHTML, mailText, dwTxt, mailSubject } from "./alert-mail.js";
 import { reasonBtn } from "./reasons.js";
 
 const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -75,12 +75,14 @@ export default {
       </table></div>
       <h2 class="section-head">${t("alert.preview")}</h2>
       <p class="foot" style="margin-top:-8px">${t("alert.previewNote")}</p>
+      <div class="row" style="margin-top:-4px"><span style="font-size:var(--t-subhead)"><span class="muted">Subject:</span> <b id="alSubj">${esc(mailSubject(a))}</b></span><span class="spacer"></span>${btn(t("alert.copySubject"), {id: "copySubj", icon: ICON.copy})}</div>
       <div class="mail-paper">${F.length ? mailHTML(a) : `<p style="font-family:Arial;color:#555">No cinemas need a reminder for ${M ? dateEN(a.from) + " to " + dateEN(a.date) : dateEN(a.date)}.</p>`}</div>
       <p class="foot">${t("alert.foot", {tol: a.tolerance})}</p>`;
 
     wireDate();
     on(c, "[data-amode]", "click", b => { state.alertMode = b.dataset.amode; app.rerender(); });
     on(c, "#copyMail", "click", () => { if (!F.length) { hud(t("alert.nothing")); return; } copyRich(mailHTML(a), mailText(a), t("alert.mailCopied")); });
+    on(c, "#copySubj", "click", () => copyText(mailSubject(a), t("alert.subjectCopied")));
     on(c, "#copyText", "click", () => copyText(mailText(a), t("toast.textCopied")));
   },
 };

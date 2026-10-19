@@ -7,9 +7,9 @@
 (function(root){
   const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,mei:4,jun:5,jul:6,aug:7,agu:7,sep:8,oct:9,okt:9,nov:10,dec:11,des:11};
   const pad = n => String(n).padStart(2,"0");
-  const FIELDS = ["admits","spkwt","spkdw","tpkwt","tpkdw","bmod"];       // packed order
-  const MH = ["spkwt","spkdw","tpkwt","tpkdw","bmod"];
-  const LABEL = {"admits":"admits","station pkwt":"spkwt","station pkdw":"spkdw","training pkwt":"tpkwt","training pkdw":"tpkdw","back up mod":"bmod","backup mod":"bmod"};
+  const FIELDS = ["admits","spkwt","spkdw","tpkwt","tpkdw","bmod","kpkdw"];       // packed order (kpkdw = Kiosk PKDW, added Oct 2026; older data simply lacks it)
+  const MH = ["spkwt","spkdw","tpkwt","tpkdw","bmod","kpkdw"];
+  const LABEL = {"admits":"admits","station pkwt":"spkwt","station pkdw":"spkdw","training pkwt":"tpkwt","training pkdw":"tpkdw","back up mod":"bmod","backup mod":"bmod","kiosk pkdw":"kpkdw","kiosk":"kpkdw"};
   const FORMAT_RE = /^(regular|vip|junior|premium|kids|4dx|imax|macro|deluxe|platinum)/i;
 
   function num(s){
@@ -69,7 +69,7 @@
     return {dates: dates.map(({label,iso,day}) => ({label,iso,day})), rows};
   }
   function finishDay(o, filled){
-    o.filled = filled; o.pkdw = (o.spkdw||0)+(o.tpkdw||0); o.pkwt = (o.spkwt||0)+(o.tpkwt||0)+(o.bmod||0);
+    o.filled = filled; o.pkdw = (o.spkdw||0)+(o.tpkdw||0)+(o.kpkdw||0); o.pkwt = (o.spkwt||0)+(o.tpkwt||0)+(o.bmod||0);
     return o;
   }
 
@@ -101,10 +101,10 @@
     let lastIdx = -1; m.dates.forEach((d,i) => { if(due[i] && m.rows.some(r => r.days[i].filled)) lastIdx = i; });
     const future = [];
     const rowStats = m.rows.map(r => {
-      const s = {spkdw:0,tpkdw:0,pkdw:0,pkwt:0,admits:0,missed:0,missedDates:[]};
+      const s = {spkdw:0,tpkdw:0,kpkdw:0,pkdw:0,pkwt:0,admits:0,missed:0,missedDates:[]};
       r.days.forEach((x,i) => {
         if(!inScope[i]){ if(x.filled) future.push({cinema:r.cinema, format:r.format, label:m.dates[i].label}); return; }
-        s.spkdw+=x.spkdw||0; s.tpkdw+=x.tpkdw||0; s.pkdw+=x.pkdw; s.pkwt+=x.pkwt; s.admits+=x.admits||0;
+        s.spkdw+=x.spkdw||0; s.tpkdw+=x.tpkdw||0; s.kpkdw+=x.kpkdw||0; s.pkdw+=x.pkdw; s.pkwt+=x.pkwt; s.admits+=x.admits||0;
         if(due[i] && !x.filled){ s.missed++; s.missedDates.push(m.dates[i].label); }
       });
       s.total = s.pkdw + s.pkwt; s.share = s.total ? s.pkdw/s.total : 0;
@@ -113,9 +113,9 @@
     const siteMap = new Map();
     rowStats.forEach(r => {
       let s = siteMap.get(r.code);
-      if(!s){ s = {code:r.code, name:r.name, cinema:r.cinema, formats:[], rows:[], spkdw:0,tpkdw:0,pkdw:0,pkwt:0,admits:0,missed:0, daily:m.dates.map(()=>0), filledDaily:m.dates.map(()=>true)}; siteMap.set(r.code, s); }
+      if(!s){ s = {code:r.code, name:r.name, cinema:r.cinema, formats:[], rows:[], spkdw:0,tpkdw:0,kpkdw:0,pkdw:0,pkwt:0,admits:0,missed:0, daily:m.dates.map(()=>0), filledDaily:m.dates.map(()=>true)}; siteMap.set(r.code, s); }
       s.formats.push(r.format); s.rows.push(r);
-      ["spkdw","tpkdw","pkdw","pkwt","admits","missed"].forEach(k => s[k]+=r[k]);
+      ["spkdw","tpkdw","kpkdw","pkdw","pkwt","admits","missed"].forEach(k => s[k]+=r[k]);
       r.days.forEach((x,i) => { if(inScope[i]) s.daily[i]+=x.pkdw; if(!x.filled) s.filledDaily[i]=false; });
     });
     const sites = [...siteMap.values()].map(s => {
@@ -131,7 +131,7 @@
       tpkdw: inScope[i] ? m.rows.reduce((a,r) => a + (r.days[i].tpkdw||0), 0) : 0,
       filled: m.rows.filter(r => r.days[i].filled).length,
       dwSites: sites.filter(s => s.daily[i] > 0).length }));
-    const tot = rowStats.reduce((a,r) => { ["spkdw","tpkdw","pkdw","pkwt","total","admits","missed"].forEach(k => a[k]+=r[k]); return a; }, {spkdw:0,tpkdw:0,pkdw:0,pkwt:0,total:0,admits:0,missed:0});
+    const tot = rowStats.reduce((a,r) => { ["spkdw","tpkdw","kpkdw","pkdw","pkwt","total","admits","missed"].forEach(k => a[k]+=r[k]); return a; }, {spkdw:0,tpkdw:0,kpkdw:0,pkdw:0,pkwt:0,total:0,admits:0,missed:0});
     tot.share = tot.total ? tot.pkdw/tot.total : 0;
     tot.rows = m.rows.length; tot.sites = sites.length;
     tot.dwSites = sites.filter(s => s.pkdw>0).length;
@@ -154,9 +154,9 @@
     const out = new Map();
     m.rows.forEach(r => {
       const x = r.days[i]; let s = out.get(r.code);
-      if(!s){ s = {code:r.code, cinema:r.cinema, admits:null, mh:0, pkdw:0, spkdw:0, tpkdw:0, filled:false}; out.set(r.code, s); }
+      if(!s){ s = {code:r.code, cinema:r.cinema, admits:null, mh:0, pkdw:0, spkdw:0, tpkdw:0, kpkdw:0, filled:false}; out.set(r.code, s); }
       if(x.admits!=null) s.admits = (s.admits||0) + x.admits;
-      s.mh += x.pkdw + x.pkwt; s.pkdw += x.pkdw; s.spkdw += x.spkdw||0; s.tpkdw += x.tpkdw||0; s.filled = s.filled || x.filled;
+      s.mh += x.pkdw + x.pkwt; s.pkdw += x.pkdw; s.spkdw += x.spkdw||0; s.tpkdw += x.tpkdw||0; s.kpkdw += x.kpkdw||0; s.filled = s.filled || x.filled;
     });
     out.forEach(s => { s.prod = s.mh>0 ? (s.admits||0)/s.mh : null; s.admitsMissing = s.admits==null && s.mh>0; });   // empty Admits counts as 0, same as the reference report
     return out;
@@ -183,7 +183,7 @@
       const c = siteCfg[s.code] || {};
       const warnDates = windowIsos.filter(iso => { const d = dayFor(iso); return d && warnOn(d.get(s.code), s.code); });
       return {code:s.code, cinema:s.cinema, region:c.region || "Belum ada region", target:targetOf(s.code), hasTarget:!!c.target,
-        warn:warnDates.length, warnDates, prod:s.prod, admits:s.admits, mh:s.mh, pkdw:s.pkdw, spkdw:s.spkdw, tpkdw:s.tpkdw,
+        warn:warnDates.length, warnDates, prod:s.prod, admits:s.admits, mh:s.mh, pkdw:s.pkdw, spkdw:s.spkdw, tpkdw:s.tpkdw, kpkdw:s.kpkdw,
         filled:s.filled, admitsMissing:s.admitsMissing, flag:warnOn(s, s.code)};
     });
     const regionNo = r => { const m = /(\d+)/.exec(r); return m ? +m[1] : 99; };

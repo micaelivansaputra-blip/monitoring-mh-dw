@@ -16,7 +16,7 @@ const when = a => a.multi ? `<b>${dateEN(a.from)}</b> to <b>${dateEN(a.date)}</b
 const whenTxt = a => a.multi ? `${dateEN(a.from)} to ${dateEN(a.date)}` : dateEN(a.date);
 export { dShortEN };
 
-const dwTxt = r => `${fInt(r.pkdw)} (${fInt(r.spkdw)} + ${fInt(r.tpkdw)})`;
+const dwTxt = r => `${fInt(r.pkdw)} (${fInt(r.spkdw)} + ${fInt(r.tpkdw)}${r.kpkdw ? " + " + fInt(r.kpkdw) + " kiosk" : ""})`;
 export { dwTxt };
 
 export function mailHTML(a) {

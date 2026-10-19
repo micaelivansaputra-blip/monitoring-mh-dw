@@ -79,3 +79,25 @@ export function trend(keys) {
 }
 
 export { isoOf };
+
+/** Productivity alerts over a date range (inclusive). Each row carries its own `date`.
+ *  Flagged rows are grouped by region → cinema → date, so a site flagged on several days sits together. */
+export function alertsRange(from, to) {
+  if (from > to) [from, to] = [to, from];
+  const days = [], missing = [];
+  for (let d = from; d <= to; d = Core.isoAdd(d, 1)) { const a = alertsOn(d); if (a) days.push(a); else missing.push(d); if (days.length + missing.length > 62) break; }
+  if (!days.length) return null;
+  const last = days[days.length - 1];
+  const regionNo = r => parseInt(String(r).replace(/\D/g, ""), 10) || 99;
+  const order = (a, b) => regionNo(a.region) - regionNo(b.region) || a.cinema.localeCompare(b.cinema) || a.date.localeCompare(b.date);
+  const tag = a => r => ({...r, date: a.date});
+  const uniq = arr => [...new Map(arr.map(r => [r.code, r])).values()];
+  return {
+    multi: days.length > 1, from: days[0].date, date: last.date, dates: days.map(a => a.date), missingDates: missing,
+    tolerance: last.tolerance, window: last.window,
+    flagged: days.flatMap(a => a.flagged.map(tag(a))).sort(order),
+    rows: days.flatMap(a => a.rows.map(tag(a))).sort(order),
+    noTarget: uniq(days.flatMap(a => a.noTarget)),
+    missingWindow: [...new Set(days.flatMap(a => a.missingWindow))],
+  };
+}

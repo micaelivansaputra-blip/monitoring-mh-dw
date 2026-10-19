@@ -2,7 +2,7 @@
 import { t, locale } from "../i18n.js";
 import { monthName, monthShort, prevKey, TODAY } from "../format.js";
 import { hud } from "../ui/dom.js";
-import { getMonth, alertsOn } from "../store.js";
+import { getMonth, alertsOn, alertsRange } from "../store.js";
 import { state } from "../state.js";
 import { trendData } from "./trend.js";
 import { bvaCurrent, statusLabel } from "./budget.js";
@@ -75,16 +75,18 @@ function exportTrend() {
 }
 
 function exportAlert() {
-  const a = alertsOn(state.alertDate); if (!a) return;
+  const a = alertsRange(state.alertFrom || state.alertDate, state.alertDate); if (!a) return;
   const W = workbook(); if (!W) return;
   // Same layout as the reference file DailyWorker_Productivity.xlsx (sheets "Flagged" + "All cinemas").
   // HitDay / HitYTD (concession hit rate) are not in the Man Hour sheet, so those columns stay empty.
-  const head = ["REGION", "CinemaSite", "WeekWarnings", "Productivity", "Target", "DW", "StationPKDW", "TrainingPKDW", "Admits", "ManHours", "HitDay", "HitYTD"];
-  const row = r => [r.region, r.cinema, r.warn, r.prod == null ? 0 : r.prod, r.target, r.pkdw, r.spkdw, r.tpkdw, r.admits || 0, r.mh, "", ""];
-  const cols = [12, 32, 13, 12, 8, 6, 12, 13, 9, 10, 8, 8];
+  // For a date range a leading "Date" column is added (one row per site per day).
+  const D = a.multi ? ["Date"] : [];
+  const head = [...D, "REGION", "CinemaSite", "WeekWarnings", "Productivity", "Target", "DW", "StationPKDW", "TrainingPKDW", "Admits", "ManHours", "HitDay", "HitYTD"];
+  const row = r => [...(a.multi ? [r.date] : []), r.region, r.cinema, r.warn, r.prod == null ? 0 : r.prod, r.target, r.pkdw, r.spkdw, r.tpkdw, r.admits || 0, r.mh, "", ""];
+  const cols = [...(a.multi ? [11] : []), 12, 32, 13, 12, 8, 6, 12, 13, 9, 10, 8, 8];
   W.add("Flagged", [head, ...a.flagged.map(row)], cols);
   W.add("All cinemas", [[...head, "Flag"], ...a.rows.map(r => [...row(r), r.flag])], [...cols, 7]);
-  W.write(`DailyWorker_Productivity_${a.date}.xlsx`);
+  W.write(`DailyWorker_Productivity_${a.multi ? a.from + "_to_" + a.date : a.date}.xlsx`);
 }
 
 function exportBudget() {

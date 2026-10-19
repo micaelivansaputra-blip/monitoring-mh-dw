@@ -69,7 +69,7 @@ export default {
   "h1.allDone": "Everyone has filled in", "h1.allDoneSub": "All {n} rows across 59 sites are complete for {date}.",
 
   // Alert
-  "alert.dateAria": "Date",
+
   "alert.noDate": "This date isn't in the data yet", "alert.noDateSub": "Pick another date, or wait for the next data update.",
   "alert.sub": "sites that used DW while productivity < target − {tol}",
   "alert.copyMail": "Copy email", "alert.copyWa": "Copy plain text (WhatsApp)",
@@ -229,4 +229,8 @@ export default {
   "budget.mailTitle": "FYI email to Kak Cinthia", "budget.copyMail": "Copy email", "budget.copySubject": "Copy subject",
   "budget.mailNote": "The email and region table follow the \"up to\" date above and refresh with every data update. The email itself is in Bahasa Indonesia. Click Copy email and paste into Outlook/Gmail (the table is included).",
   "budget.mailCopied": "Email copied, ready to paste", "budget.subjectCopied": "Subject copied",
+  "alert.from": "From", "alert.to": "to", "alert.range": "Date range", "alert.pWeekend": "Fri–Sun", "alert.p7": "7 days",
+  "alert.rangeInfo": "{n} days · one row per site per day", "alert.missingDates": "{n} dates not in the data yet",
+  "alert.flaggedSubRange": "{n} cases (site × day) over {d} days", "alert.heavyRange": "sites flagged ≥ 5 days in their fiscal week",
+  "alert.noneFlaggedRange": "No sites flagged in this date range.",
 };

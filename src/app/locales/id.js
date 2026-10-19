@@ -69,7 +69,7 @@ export default {
   "h1.allDone": "Semua sudah mengisi", "h1.allDoneSub": "{n} baris dari 59 site lengkap untuk {date}.",
 
   // Alert
-  "alert.dateAria": "Tanggal",
+
   "alert.noDate": "Tanggal ini belum ada di data", "alert.noDateSub": "Pilih tanggal lain, atau tunggu update data berikutnya.",
   "alert.sub": "site yang memakai DW tapi productivity < target − {tol}",
   "alert.copyMail": "Salin email", "alert.copyWa": "Salin versi teks (WhatsApp)",
@@ -229,4 +229,8 @@ export default {
   "budget.mailTitle": "Email FYI ke Kak Cinthia", "budget.copyMail": "Salin email", "budget.copySubject": "Salin subjek",
   "budget.mailNote": "Isi email & tabel per region ikut tanggal \"s.d.\" di atas dan ter-update otomatis tiap data diperbarui. Klik Salin email lalu tempel di Outlook/Gmail (tabel ikut tersalin).",
   "budget.mailCopied": "Email disalin, tinggal tempel", "budget.subjectCopied": "Subjek disalin",
+  "alert.from": "Dari", "alert.to": "s.d.", "alert.range": "Rentang tanggal", "alert.pWeekend": "Jum–Min", "alert.p7": "7 hari",
+  "alert.rangeInfo": "{n} hari · satu baris per site per hari", "alert.missingDates": "{n} tanggal belum ada di data",
+  "alert.flaggedSubRange": "{n} kasus (site × hari) dalam {d} hari", "alert.heavyRange": "site dengan ≥ 5 hari ter-flag di minggu fiskalnya",
+  "alert.noneFlaggedRange": "Tidak ada site yang ter-flag di rentang tanggal ini.",
 };

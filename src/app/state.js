@@ -5,11 +5,19 @@ export const VIEWS = ["overview", "h1", "alert", "reasons", "sites", "daily", "b
 /** Views whose content depends on the month picker. */
 export const MONTH_VIEWS = ["overview", "sites", "daily", "map", "budget", "reasons"];
 
+/** Monday → Friday (covers Fri–Sun); other days → yesterday. */
+export function defaultAlertFrom() {
+  const d = new Date(YESTERDAY + "T00:00:00");
+  if (new Date().getDay() === 1) d.setDate(d.getDate() - 2);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
 export const state = {
   view: "overview",
   month: YESTERDAY.slice(0, 7),
   h1Date: YESTERDAY,
-  alertDate: YESTERDAY,
+  alertDate: YESTERDAY,          // "sampai"
+  alertFrom: defaultAlertFrom(),  // "dari" — on Monday: Friday, so the weekend is covered
   alertMode: "flagged",
   siteFilter: "all",
   q: "",

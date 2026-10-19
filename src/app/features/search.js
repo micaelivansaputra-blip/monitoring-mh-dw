@@ -125,7 +125,7 @@ function results(q, idx, app) {
   const iso = parseDate(nq);
   if (iso) {
     out.push({group: "dates", icon: ICON.checklist, title: t("search.dateH1"), sub: dateLong(iso), run: () => { state.h1Date = iso; app.go("h1"); }, s: 99});
-    out.push({group: "dates", icon: ICON.alert, title: t("search.dateAlert"), sub: dateLong(iso), run: () => { state.alertDate = iso; app.go("alert"); }, s: 98});
+    out.push({group: "dates", icon: ICON.alert, title: t("search.dateAlert"), sub: dateLong(iso), run: () => { state.alertDate = iso; state.alertFrom = iso; app.go("alert"); }, s: 98});
   }
   idx.items.forEach(i => { const s = score(i.hay, tokens, i.code); if (s) out.push({...i, s}); });
   return GROUPS.flatMap(gr => out.filter(i => i.group === gr).sort((a, b) => b.s - a.s).slice(0, LIMIT[gr]));

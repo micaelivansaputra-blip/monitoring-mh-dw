@@ -36,7 +36,12 @@
     const hdr = values[dr], sub = values[dr+1] || [];
     const cinemaIdx = Math.max(0, sub.findIndex(x => norm(x)==="cinema"));
     const fmtIdx = sub.findIndex(x => norm(x)==="format");
-    const dcols = []; hdr.forEach((h,i) => { if(isDate(h)) dcols.push(i); });
+    let dcols = []; hdr.forEach((h,i) => { if(isDate(h)) dcols.push(i); });
+    // drop stray dates outside the tab's month (e.g. an empty date formula showing 31/12/1899)
+    const ym = h => String(h).trim().slice(3);
+    const cnt = {}; dcols.forEach(i => { const k = ym(hdr[i]); cnt[k] = (cnt[k]||0) + 1; });
+    const main = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a])[0];
+    dcols = dcols.filter(i => ym(hdr[i]) === main);
     const dates = dcols.map((c,j) => {
       const end = j+1 < dcols.length ? dcols[j+1] : c+9;
       const cols = {};

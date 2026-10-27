@@ -19,7 +19,7 @@ for (const f of [...files, "index.html"]) {
 
 ["over", "nobudget", "early", "near", "ok", "none"].forEach(k => used.add("bstat." + k));
 ["alert", "over", "nobudget", "h1", "other"].forEach(k => used.add("reason.ctx." + k));
-["admits", "event", "sick", "training", "ops", "input", "noreply", "other"].forEach(k => used.add("reason.cat." + k));
+["admits", "nobar", "event", "kiosk", "other", "noreply", "sick", "training", "ops", "input"].forEach(k => used.add("reason.cat." + k));
 ["sheet", "local", "pending"].forEach(k => used.add("reason.saved." + k));
 ["recent", "sites", "pages", "months", "notes", "downloads", "dates"].forEach(k => used.add("search.g." + k));
 ["month", "csv", "alert", "budget", "trend", "reasons", "daily"].forEach(k => used.add("search.dl." + k));

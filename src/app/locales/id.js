@@ -197,9 +197,9 @@ export default {
   "reason.emptyMonth": "Belum ada catatan untuk {month}.",
   "reason.foot": "Klik baris untuk menambah catatan atau melihat riwayat site. Semua catatan juga bisa dibuka langsung di Google Sheet.",
   "reason.ctx.alert": "Productivity Alert", "reason.ctx.over": "Over budget", "reason.ctx.nobudget": "Tanpa budget", "reason.ctx.h1": "Belum isi H-1", "reason.ctx.other": "Lainnya",
-  "reason.cat.admits": "Admits di atas perkiraan", "reason.cat.event": "Event / film besar", "reason.cat.sick": "Staff sakit / izin / cuti",
-  "reason.cat.training": "Training staff baru", "reason.cat.ops": "Kebutuhan operasional lain", "reason.cat.input": "Salah input data",
-  "reason.cat.noreply": "Belum ada jawaban", "reason.cat.other": "Lainnya",
+  "reason.cat.admits": "Admits tinggi", "reason.cat.nobar": "Nobar", "reason.cat.event": "Event", "reason.cat.kiosk": "Kiosk",
+  "reason.cat.sick": "Staff sakit / izin / cuti", "reason.cat.training": "Training staff baru", "reason.cat.ops": "Kebutuhan operasional lain", "reason.cat.input": "Salah input data",
+  "reason.cat.noreply": "Belum ada jawaban", "reason.cat.other": "Other",
   // Search
   "search.btn": "Cari", "search.title": "Cari", "search.ph": "Cari site, halaman, bulan, tanggal, atau reason…",
   "search.kNav": "pilih", "search.kOpen": "buka", "search.hint": "Coba: 34, Renon, region 3, 12/10, oktober, excel",

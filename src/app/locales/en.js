@@ -197,8 +197,8 @@ export default {
   "reason.emptyMonth": "No notes for {month} yet.",
   "reason.foot": "Click a row to add a note or see the site's history. All notes can also be opened directly in the Google Sheet.",
   "reason.ctx.alert": "Productivity Alert", "reason.ctx.over": "Over budget", "reason.ctx.nobudget": "No budget", "reason.ctx.h1": "Not filled (D-1)", "reason.ctx.other": "Other",
-  "reason.cat.admits": "Admits above forecast", "reason.cat.event": "Event / big release", "reason.cat.sick": "Staff sick / leave",
-  "reason.cat.training": "New staff training", "reason.cat.ops": "Other operational need", "reason.cat.input": "Data entry error",
+  "reason.cat.admits": "High admits", "reason.cat.nobar": "Group screening (nobar)", "reason.cat.event": "Event", "reason.cat.kiosk": "Kiosk",
+  "reason.cat.sick": "Staff sick / leave", "reason.cat.training": "New staff training", "reason.cat.ops": "Other operational need", "reason.cat.input": "Data entry error",
   "reason.cat.noreply": "No answer yet", "reason.cat.other": "Other",
   // Search
   "search.btn": "Search", "search.title": "Search", "search.ph": "Search sites, pages, months, dates or reasons…",

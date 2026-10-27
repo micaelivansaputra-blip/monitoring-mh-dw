@@ -11,11 +11,17 @@ import { cutFor } from "./budget.js";
 
 /** Where the note came from (konteks) and why (kategori). Stored in the sheet as the Indonesian label. */
 export const CONTEXTS = ["alert", "over", "nobudget", "h1", "other"];
-export const CATEGORIES = ["admits", "event", "sick", "training", "ops", "input", "noreply", "other"];
+export const CATEGORIES = ["admits", "nobar", "event", "kiosk", "other", "noreply"];
+/** Older categories: no longer offered in the form, but notes saved with them still display and count. */
+const LEGACY = ["sick", "training", "ops", "input"];
+const ALL_CATS = [...CATEGORIES, ...LEGACY];
+/** Labels the sheet may still hold from before the category rename. */
+const OLD_LABEL = {"Admits di atas perkiraan": "admits", "Event / film besar": "event"};
 const ID = _dicts.id;
 const idLabel = (kind, k) => ID[`reason.${kind}.${k}`];
 /** Show a stored label in the active language (falls back to the stored text). */
-const shown = (kind, stored) => { const k = (kind === "ctx" ? CONTEXTS : CATEGORIES).find(x => idLabel(kind, x) === stored); return k ? t(`reason.${kind}.${k}`) : (stored || "–"); };
+const catKey = stored => ALL_CATS.find(x => idLabel("cat", x) === stored) || OLD_LABEL[stored];
+const shown = (kind, stored) => { const k = kind === "ctx" ? CONTEXTS.find(x => idLabel(kind, x) === stored) : catKey(stored); return k ? t(`reason.${kind}.${k}`) : (stored || "–"); };
 const ctxKey = stored => CONTEXTS.find(x => idLabel("ctx", x) === stored) || "other";
 const CTX_TONE = {alert: "orange", over: "red", nobudget: "orange", h1: "blue", other: ""};
 
@@ -136,7 +142,7 @@ export default {
     const inMonth = reasons.all.filter(n => (n.date || "").startsWith(key));
     const list = inMonth.filter(n => (flt === "all" || ctxKey(n.context) === flt) && (!q || `${n.cinema} ${n.reason} ${n.source} ${n.by}`.toLowerCase().includes(q)));
     const need = needed();
-    const byCat = CATEGORIES.map(k => [k, inMonth.filter(n => n.category === idLabel("cat", k)).length]).filter(([, v]) => v).sort((a, b) => b[1] - a[1]);
+    const byCat = ALL_CATS.map(k => [k, inMonth.filter(n => catKey(n.category) === k).length]).filter(([, v]) => v).sort((a, b) => b[1] - a[1]);
     const maxCat = Math.max(1, ...byCat.map(([, v]) => v));
     const storeNote = reasons.mode === "local" ? notice(t("reason.setupTitle"), t("reason.setupSub"))
       : reasons.mode === "offline" ? notice(t("reason.offlineTitle"), t("reason.offlineSub", {e: esc(reasons.error || "")}), "err") : "";

@@ -181,6 +181,8 @@
     const targetOf = code => (siteCfg[code] && siteCfg[code].target) || cfg.defaultTarget || 14;
     // cfg.alertExclude: [{site:"8", from:"2026-10-27", to:"2026-10-27", note}] — site left out of the alert on those report dates (to omitted = from).
     const excluded = code => (cfg.alertExclude || []).some(e => String(e.site) === String(code) && dateIso >= e.from && dateIso <= (e.to || e.from));
+    // cfg.alertInclude: same shape — site flagged on those dates whenever it used DW and prod < target, even inside the tolerance.
+    const forced = (s, code) => !!s && s.pkdw > 0 && s.prod != null && s.prod < targetOf(code) && (cfg.alertInclude || []).some(e => String(e.site) === String(code) && dateIso >= e.from && dateIso <= (e.to || e.from));
     const warnOn = (s, code) => !!s && s.pkdw > 0 && s.prod != null && s.prod < targetOf(code) - tol;
     // cfg.weekStartDay (0=Sun … 3=Wed): count from the start of the running fiscal week up to dateIso; otherwise a rolling window.
     const [yy,mm,dd] = dateIso.split("-").map(Number), dow = new Date(Date.UTC(yy, mm-1, dd)).getUTCDay();
@@ -188,10 +190,10 @@
     const windowIsos = Array.from({length:span}, (_,k) => isoAdd(dateIso, k-span+1));
     const rows = [...today.values()].map(s => {
       const c = siteCfg[s.code] || {};
-      const warnDates = windowIsos.filter(iso => { const d = dayFor(iso); return d && warnOn(d.get(s.code), s.code); });
+      const warnDates = windowIsos.filter(iso => { const d = dayFor(iso); return d && (warnOn(d.get(s.code), s.code) || (iso === dateIso && forced(s, s.code))); });
       return {code:s.code, cinema:s.cinema, region:c.region || "Belum ada region", target:targetOf(s.code), hasTarget:!!c.target,
         warn:warnDates.length, warnDates, prod:s.prod, admits:s.admits, mh:s.mh, pkdw:s.pkdw, spkdw:s.spkdw, tpkdw:s.tpkdw, kpkdw:s.kpkdw,
-        filled:s.filled, admitsMissing:s.admitsMissing, excluded:excluded(s.code), flag:warnOn(s, s.code) && !excluded(s.code)};
+        filled:s.filled, admitsMissing:s.admitsMissing, excluded:excluded(s.code), forced:forced(s, s.code), flag:(warnOn(s, s.code) || forced(s, s.code)) && !excluded(s.code)};
     });
     const regionNo = r => { const m = /(\d+)/.exec(r); return m ? +m[1] : 99; };
     rows.sort((a,b) => regionNo(a.region) - regionNo(b.region) || a.cinema.localeCompare(b.cinema));

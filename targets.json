@@ -13,6 +13,15 @@
    "note": "Dikecualikan dari Productivity Alert 27 Okt atas permintaan Ivan"
   }
  ],
+ "alertInclude": [
+  {
+   "site": "39",
+   "cinema": "39-CIBUBUR JUNCTION",
+   "from": "2026-10-29",
+   "to": "2026-10-29",
+   "note": "Prod 13.1 vs target 14 (masih dalam toleransi), dimasukkan ke alert 29 Okt atas permintaan Ivan"
+  }
+ ],
  "sites": {
   "2": {
    "region": "REGION 3",
